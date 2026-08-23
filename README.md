@@ -1,6 +1,6 @@
 # 仕事データツール
 
-CSVやテキストの確認・変換・比較を、入力データを外部へ送らずブラウザ内だけで行う静的ツール集です。「2つのリスト突合」と「CSV列抽出・列削除」を提供します。
+CSVやテキストの確認・変換・比較を、入力データを外部へ送らずブラウザ内だけで行う静的ツール集です。「2つのリスト突合」「CSV列抽出・列削除」「CSV重複チェック」を提供します。
 
 ## 技術構成
 
@@ -30,6 +30,7 @@ assets/                 共通スタイル
 shared/                 DOM非依存の処理ロジックと画面制御
 text/list-compare/      Tool #001 の静的ページ
 csv/columns/            Tool #002 の静的ページ
+csv/duplicate-check/    Tool #003 の静的ページ
 privacy/ , terms/       共通ページ
 tests/                  単体・通信禁止テスト
 docs/HUMAN_GATE.md      人手確認と自動化候補の記録
@@ -46,6 +47,8 @@ dist/                   配置用成果物（buildで生成）
 5. `pnpm run test:all`、Offline操作、Human Gateを実施します。
 
 Tool #002では、新ページ、純粋ロジック、画面制御、CSV専用スタイル、単体テスト、ブラウザテストの追加と、トップ・sitemap・build・Network Isolation・Human Gate・READMEの更新を行いました。静的サイトとしての共通基盤は再利用できましたが、Tool #003では「ツール登録情報」からトップカードとsitemapを生成する小さな仕組みが改善候補です。
+
+Tool #003では、Tool #002のCSV parser / serializer / UTF-8検証をそのまま再利用しました。ページ、重複判定ロジック、重複一覧UI、固有テストだけを新規に追加しています。
 
 ## Human Gate
 

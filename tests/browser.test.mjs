@@ -75,3 +75,37 @@ test('CSV列抽出はスマートフォン幅でも横にはみ出さない', as
   await expect(page.getByLabel('CSVファイル')).toBeVisible();
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('CSV重複チェックは複数キー、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+  await page.goto('/csv/duplicate-check/');
+  await page.setInputFiles('#duplicate-file', { name: 'customers.csv', mimeType: 'text/csv', buffer: Buffer.from('\uFEFFID,NAME\r\n001,田中\r\n001,田中\r\n001,鈴木\r\n002,田中', 'utf8') });
+  await expect(page.locator('input[name="duplicate-key"]')).toHaveCount(2);
+  await page.locator('input[name="duplicate-key"]').nth(0).check();
+  await page.locator('input[name="duplicate-key"]').nth(1).check();
+  await page.getByRole('button', { name: '重複をチェック' }).click();
+  await expect(page.locator('#result-group-count')).toHaveText('1');
+  await expect(page.locator('#result-row-count')).toHaveText('2');
+  await expect(page.locator('#duplicate-groups')).toContainText('最初の出現');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: '重複行をCSV保存' }).click();
+  await expect((await download).suggestedFilename()).toBe('customers-duplicates.csv');
+  await context.setOffline(true);
+  await page.setInputFiles('#duplicate-file', { name: 'offline.csv', mimeType: 'text/csv', buffer: Buffer.from('ID\nA\nA', 'utf8') });
+  await expect(page.locator('input[name="duplicate-key"]')).toHaveCount(1);
+  await page.locator('input[name="duplicate-key"]').first().check();
+  await page.getByRole('button', { name: '重複をチェック' }).click();
+  await expect(page.locator('#result-row-count')).toHaveText('2');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV重複チェックはスマートフォン幅でも横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/duplicate-check/');
+  await expect(page.getByLabel('CSVファイル')).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});

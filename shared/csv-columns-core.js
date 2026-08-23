@@ -72,9 +72,9 @@ export function serializeCsv(records) {
 
 export function createUtf8BomCsv(records) { return `\uFEFF${serializeCsv(records)}`; }
 
-export function outputFilename(inputName) {
+export function outputFilename(inputName, suffix = 'columns') {
   const stem = String(inputName || 'columns').replace(/\.csv$/i, '') || 'columns';
-  return `${stem}-columns.csv`;
+  return `${stem}-${suffix}.csv`;
 }
 
 export function columnLabel(headers, index) {
