@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const allowedOrigins = new Set(['https://tools.norqevia.com']);
 const files = [];
-for (const part of ['index.html', 'assets', 'shared', 'text', 'privacy', 'terms']) {
+for (const part of ['index.html', 'assets', 'shared', 'text', 'csv', 'privacy', 'terms']) {
   const path = join(root, part);
   try { if ((await readdir(path)).length >= 0) await walk(path); } catch { files.push(path); }
 }
