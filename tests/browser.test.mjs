@@ -1,0 +1,44 @@
+import { test, expect } from '@playwright/test';
+
+test('比較、TXT保存、外部通信なし、Offline動作、Console Errorなし', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+  await page.goto('/text/list-compare/');
+  await page.getByLabel('リストA').fill(' A001 \nA002\nA002\n😀');
+  await page.getByLabel('リストB').fill('A002\nA003\n😀');
+  await page.getByRole('button', { name: '比較する' }).click();
+  await expect(page.locator('#list-aOnly')).toHaveValue(' A001 ');
+  await expect(page.locator('#list-both')).toHaveValue('A002\n😀');
+  await expect(page.locator('#list-bOnly')).toHaveValue('A003');
+  await expect(page.locator('#stats-a')).toContainText('重複件数1');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'TXT保存' }).first().click();
+  await expect((await download).suggestedFilename()).toBe('a-only.txt');
+  await context.setOffline(true);
+  await page.getByLabel('リストA').fill('オフライン');
+  await page.getByLabel('リストB').fill('オフライン\n継続');
+  await page.getByRole('button', { name: '比較する' }).click();
+  await expect(page.locator('#list-both')).toHaveValue('オフライン');
+  await expect(page.locator('#list-bOnly')).toHaveValue('継続');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('空入力の案内と主要な静的ページを表示できる', async ({ page }) => {
+  await page.goto('/text/list-compare/');
+  await page.getByRole('button', { name: '比較する' }).click();
+  await expect(page.locator('#notice')).toHaveText('比較するデータを入力してください。');
+  for (const [path, heading] of [['/', '仕事のデータを、外に出さずに処理。'], ['/privacy/', 'プライバシー'], ['/terms/', '利用規約']]) {
+    await page.goto(path);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
+  }
+});
+
+test('スマートフォン幅でも主要操作部が横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/text/list-compare/');
+  await expect(page.getByRole('button', { name: '比較する' })).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
