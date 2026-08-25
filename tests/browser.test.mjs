@@ -109,3 +109,32 @@ test('CSV重複チェックはスマートフォン幅でも横にはみ出さ�
   await expect(page.getByLabel('CSVファイル')).toBeVisible();
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('CSV空欄行削除は完全空欄だけを削除し、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+  await page.goto('/csv/remove-empty-rows/');
+  await page.setInputFiles('#remove-empty-file', { name: 'customers.csv', mimeType: 'text/csv', buffer: Buffer.from('\uFEFFID,NAME,NOTE\r\n001,田中,\r\n,,\r\n002,,開発\r\n,,', 'utf8') });
+  await expect(page.locator('#removed-row-count')).toHaveText('2');
+  await expect(page.locator('#remaining-row-count')).toHaveText('2');
+  await expect(page.locator('#remove-empty-preview')).toContainText('田中');
+  await expect(page.locator('#remove-empty-preview')).toContainText('開発');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'CSVを保存' }).click();
+  await expect((await download).suggestedFilename()).toBe('customers-empty-rows-removed.csv');
+  await context.setOffline(true);
+  await page.setInputFiles('#remove-empty-file', { name: 'offline.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,NOTE\n1, \n,,', 'utf8') });
+  await expect(page.locator('#removed-row-count')).toHaveText('1');
+  await expect(page.locator('#remove-empty-preview')).toContainText('1');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV空欄行削除はスマートフォン幅でも横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/remove-empty-rows/');
+  await expect(page.getByLabel('CSVファイル')).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});

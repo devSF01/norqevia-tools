@@ -1,0 +1,38 @@
+[
+  {
+    "id": "text-list-compare",
+    "number": 1,
+    "name": "2つのリスト突合",
+    "category": "テキスト",
+    "path": "/text/list-compare/",
+    "description": "2つの1列リストを比較し、Aだけ・共通・Bだけを確認できます。",
+    "status": "published"
+  },
+  {
+    "id": "csv-columns",
+    "number": 2,
+    "name": "CSV列抽出・列削除",
+    "category": "CSV",
+    "path": "/csv/columns/",
+    "description": "CSVから必要な列だけを選び、新しいCSVとして保存できます。",
+    "status": "published"
+  },
+  {
+    "id": "csv-duplicate-check",
+    "number": 3,
+    "name": "CSV重複チェック",
+    "category": "CSV",
+    "path": "/csv/duplicate-check/",
+    "description": "指定した列をキーに、CSV内の重複データを確認できます。",
+    "status": "published"
+  },
+  {
+    "id": "csv-remove-empty-rows",
+    "number": 4,
+    "name": "CSV空欄行削除",
+    "category": "CSV",
+    "path": "/csv/remove-empty-rows/",
+    "description": "CSVから完全に空の行だけを削除し、新しいCSVとして保存できます。",
+    "status": "published"
+  }
+]

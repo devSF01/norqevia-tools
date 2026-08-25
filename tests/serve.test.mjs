@@ -41,6 +41,7 @@ for (const [path, contentType] of [
   ['/text/list-compare/', 'text/html'],
   ['/csv/columns/', 'text/html'],
   ['/csv/duplicate-check/', 'text/html'],
+  ['/csv/remove-empty-rows/', 'text/html'],
   ['/privacy/', 'text/html'],
   ['/terms/', 'text/html'],
   ['/assets/site.css', 'text/css'],

@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV空欄行削除 | 仕事データツール</title>
+  <meta name="description" content="CSVから全列が空の行だけを削除し、新しいCSVとして保存します。ファイルはブラウザ内だけで処理します。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/remove-empty-rows/">
+  <meta property="og:title" content="CSV空欄行削除 | 仕事データツール">
+  <meta property="og:description" content="CSVから完全に空の行だけを削除して保存します。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/remove-empty-rows/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-remove-empty-rows-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV空欄行削除</span></nav>
+    <h1>CSV空欄行削除</h1>
+    <p class="lead">CSVから、すべての列が空の行だけを削除して、新しいCSVとして保存できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV空欄行削除ツール">
+      <h2>空欄行を削除する</h2>
+      <div class="file-input"><label for="remove-empty-file">CSVファイル</label><input id="remove-empty-file" type="file" accept=".csv,text/csv"><p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p></div>
+      <p id="remove-empty-notice" class="notice" aria-live="polite"></p>
+      <section id="remove-empty-summary" class="csv-summary" hidden aria-label="処理結果"><dl><dt>ファイル名</dt><dd id="remove-empty-file-name"></dd><dt>ファイルサイズ</dt><dd id="remove-empty-file-size"></dd><dt>列数</dt><dd id="remove-empty-column-count"></dd><dt>元のデータ行数</dt><dd id="remove-empty-data-row-count"></dd><dt>削除した空欄行数</dt><dd id="removed-row-count"></dd><dt>出力するデータ行数</dt><dd id="remaining-row-count"></dd></dl></section>
+      <section id="remove-empty-preview-area" class="preview-area" hidden><div class="section-heading"><h3>出力プレビュー</h3><button id="save-remove-empty" class="primary" type="button" disabled>CSVを保存</button></div><p id="preview-note" class="hint"></p><div id="remove-empty-preview" class="csv-preview" tabindex="0"></div></section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>完全に空の行が自動的に削除され、削除件数とプレビューが表示されます。</li><li>内容を確認して、「CSVを保存」を押します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">ID,NAME,DEPARTMENT<br>001,田中,営業<br>,,<br>002,,開発<br><br>「,,」のようにすべての列が空の行だけを削除します。002の行はNAMEが空でも、ほかの列に値があるため残ります。</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>すべての列が空文字列のデータ行だけを削除します。1つでも値が入っている行は残します。空白文字だけのセルは空欄として扱わず、その行を残します。ヘッダー行は削除しません。出力はUTF-8 BOM付き・CRLF改行です。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>元CSVは変更されますか？</h3><p>いいえ。元ファイルは変更せず、空欄行を削除した新しいCSVを保存します。</p><h3>一部の列だけ空の行も削除されますか？</h3><p>いいえ。すべての列が空の場合だけ削除します。</p><h3>CSVファイルはアップロードされますか？</h3><p>いいえ。ブラウザ内だけで処理します。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/columns/">CSV列抽出・列削除</a> / <a href="/csv/duplicate-check/">CSV重複チェック</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>
