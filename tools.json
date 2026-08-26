@@ -34,5 +34,14 @@
     "path": "/csv/remove-empty-rows/",
     "description": "CSVから完全に空の行だけを削除し、新しいCSVとして保存できます。",
     "status": "published"
+  },
+  {
+    "id": "csv-merge",
+    "number": 5,
+    "name": "CSV結合",
+    "category": "CSV",
+    "path": "/csv/merge/",
+    "description": "複数のCSVを1つのCSVに結合するTool。",
+    "status": "published"
   }
 ]

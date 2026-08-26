@@ -138,3 +138,41 @@ test('CSV空欄行削除はスマートフォン幅でも横にはみ出さな�
   await expect(page.getByLabel('CSVファイル')).toBeVisible();
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('CSV結合は複数ファイルを順番どおりに結合し、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+  await page.goto('/csv/merge/');
+  await page.setInputFiles('#merge-files', [
+    { name: 'customers-part-1.csv', mimeType: 'text/csv', buffer: Buffer.from('\uFEFFID,NAME,NOTE\r\n001,田中,"東京,営業"\r\n002,鈴木,開発', 'utf8') },
+    { name: 'customers-part-2.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,NAME,NOTE\r\n003,佐藤,総務\r\n004,山田,"大阪,企画"', 'utf8') }
+  ]);
+  const preview = page.locator('#merge-preview');
+  await expect(preview).toContainText('ID');
+  await expect(preview).toContainText('田中');
+  await expect(preview).toContainText('佐藤');
+  const previewText = await preview.innerText();
+  expect(previewText.indexOf('田中')).toBeLessThan(previewText.indexOf('佐藤'));
+  expect((previewText.match(/\bID\b/g) || []).length).toBe(1);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'CSVを保存' }).click();
+  await expect((await download).suggestedFilename()).toMatch(/\.csv$/i);
+  await context.setOffline(true);
+  await page.setInputFiles('#merge-files', [
+    { name: 'offline-a.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,NAME\nA,オフライン1', 'utf8') },
+    { name: 'offline-b.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,NAME\nB,オフライン2', 'utf8') }
+  ]);
+  await expect(preview).toContainText('オフライン1');
+  await expect(preview).toContainText('オフライン2');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV結合はスマートフォン幅でも横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/merge/');
+  await expect(page.getByLabel('CSVファイル')).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});

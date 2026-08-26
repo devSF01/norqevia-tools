@@ -42,6 +42,7 @@ for (const [path, contentType] of [
   ['/csv/columns/', 'text/html'],
   ['/csv/duplicate-check/', 'text/html'],
   ['/csv/remove-empty-rows/', 'text/html'],
+  ['/csv/merge/', 'text/html'],
   ['/privacy/', 'text/html'],
   ['/terms/', 'text/html'],
   ['/assets/site.css', 'text/css'],
