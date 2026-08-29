@@ -184,8 +184,9 @@ canonicalのProduction origin:
 Registryの生成結果は `tests/registry.test.mjs` で確認します。
 
 関連Toolについては各Toolページの文脈に依存するため、現時点ではTool固有実装として扱います。
-
----
+- `tools.json` の `description` は依頼文をそのまま転記せず、
+  利用者向けの自然な説明文として記述する。
+- 既存Toolと文体を揃え、原則として「〜できます。」形式とする。
 
 ## 6. 実装構造
 

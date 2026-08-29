@@ -43,10 +43,12 @@ for (const [path, contentType] of [
   ['/csv/duplicate-check/', 'text/html'],
   ['/csv/remove-empty-rows/', 'text/html'],
   ['/csv/merge/', 'text/html'],
+  ['/csv/split/', 'text/html'],
   ['/privacy/', 'text/html'],
   ['/terms/', 'text/html'],
   ['/assets/site.css', 'text/css'],
-  ['/shared/list-compare-app.js', 'text/javascript']
+  ['/shared/list-compare-app.js', 'text/javascript'],
+  ['/shared/csv-split-app.js', 'text/javascript']
 ]) {
   test(`GET ${path} は 200`, async () => {
     const response = await get(path);

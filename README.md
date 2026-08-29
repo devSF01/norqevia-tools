@@ -1,6 +1,6 @@
 # 仕事データツール
 
-CSVやテキストの確認・変換・比較を、入力データを外部へ送らずブラウザ内だけで行う静的ツール集です。「2つのリスト突合」「CSV列抽出・列削除」「CSV重複チェック」「CSV空欄行削除」を提供します。
+CSVやテキストの確認・変換・比較を、入力データを外部へ送らずブラウザ内だけで行う静的ツール集です。「2つのリスト突合」「CSV列抽出・列削除」「CSV重複チェック」「CSV空欄行削除」「CSV結合」「CSV分割」を提供します。
 
 ## 技術構成
 
@@ -21,7 +21,7 @@ Bundled Node.js を利用する環境では、次のように実行します。
 
 ## Network Isolation Test
 
-`tests/network-isolation.mjs` は `fetch`、XHR、WebSocket、EventSource、Beacon、iframe、外部 script / stylesheet、外部URLを検査します。ブラウザ確認では初回読込後にOfflineへ切り替え、入力・比較・結果・TXT保存を確認します。
+`tests/network-isolation.mjs` は `fetch`、XHR、WebSocket、EventSource、Beacon、iframe、外部 script / stylesheet、外部URLを検査します。ブラウザ確認では初回読込後にOfflineへ切り替え、各Toolの主要操作・結果・保存が継続して動作することを確認します。
 
 ## 構成
 
@@ -31,6 +31,8 @@ Bundled Node.js を利用する環境では、次のように実行します。
     csv/columns/            Tool #002 の静的ページ
     csv/duplicate-check/    Tool #003 の静的ページ
     csv/remove-empty-rows/  Tool #004 の静的ページ
+    csv/merge/              Tool #005 の静的ページ
+    csv/split/              Tool #006 の静的ページ
     privacy/ , terms/       共通ページ
     tests/                  単体・通信禁止テスト
     docs/HUMAN_GATE.md      人手確認と自動化候補の記録
@@ -55,6 +57,10 @@ Tool #003では、Tool #002のCSV parser / serializer / UTF-8検証をそのま�
 Tool #003後のFactory改善として `tools.json` をTool Registry化し、トップページのToolカードとsitemapをbuild時生成へ移行しました。`tests/registry.test.mjs` でpublished Toolの表示順、トップページ反映、sitemap反映、未公開Toolの除外を検証します。
 
 Tool #004では、共通CSV parser / serializer / UTF-8検証を再利用し、全列が空のデータ行だけを削除して新しいCSVを保存します。削除件数、出力プレビュー、Download、Offline動作を確認します。
+
+Tool #005では、共通CSV parser / serializer / UTF-8検証を再利用し、複数のCSVをファイル順に結合して新しいCSVを保存します。ヘッダーの扱い、列構成の検証、Download、Offline動作を確認します。
+
+Tool #006では、共通CSV parser / serializer / UTF-8検証を再利用し、データ行を指定件数ごとに分割して新しいCSVを保存します。各ファイルへのヘッダー付与、行順・値の保持、Download、Offline動作を確認します。
 
 ## Human Gate
 

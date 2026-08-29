@@ -43,5 +43,14 @@
     "path": "/csv/merge/",
     "description": "複数のCSVを1つのCSVに結合するTool。",
     "status": "published"
+  },
+  {
+    "id": "csv-split",
+    "number": 6,
+    "name": "CSV分割",
+    "category": "CSV",
+    "path": "/csv/split/",
+    "description": "CSVを指定したデータ行数ごとに分割し、新しいCSVとして保存できます。",
+    "status": "published"
   }
 ]

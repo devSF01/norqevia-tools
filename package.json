@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node --test tests/list-compare.test.mjs tests/csv-columns.test.mjs tests/csv-duplicate.test.mjs tests/csv-remove-empty-rows.test.mjs tests/csv-merge.test.mjs tests/registry.test.mjs tests/serve.test.mjs",
+    "test": "node --test tests/list-compare.test.mjs tests/csv-columns.test.mjs tests/csv-duplicate.test.mjs tests/csv-remove-empty-rows.test.mjs tests/csv-merge.test.mjs tests/csv-split.test.mjs tests/registry.test.mjs tests/serve.test.mjs",
     "test:network": "node tests/network-isolation.mjs",
     "test:browser": "playwright test",
     "test:all": "pnpm run build && pnpm run test && pnpm run test:network && pnpm run test:browser",

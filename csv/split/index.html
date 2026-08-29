@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV分割 | 仕事データツール</title>
+  <meta name="description" content="CSVを指定したデータ行数ごとに複数のCSVへ分割し、新しいファイルとして保存できます。ファイルはブラウザ内だけで処理します。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/split/">
+  <meta property="og:title" content="CSV分割 | 仕事データツール">
+  <meta property="og:description" content="CSVを指定したデータ行数ごとに分割して保存できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/split/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-split-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV分割</span></nav>
+    <h1>CSV分割</h1>
+    <p class="lead">CSVを指定したデータ行数ごとに分割して、複数のCSVとして保存できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV分割ツール">
+      <h2>CSVを分割する</h2>
+      <div class="file-input">
+        <label for="split-file">CSVファイル</label>
+        <input id="split-file" type="file" accept=".csv,text/csv">
+        <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+      </div>
+      <div class="file-input">
+        <label for="rows-per-file">1ファイルあたりのデータ行数</label>
+        <input id="rows-per-file" type="number" min="1" step="1" value="1000" inputmode="numeric">
+        <p class="hint">ヘッダー行は、すべての分割ファイルに含まれます。</p>
+      </div>
+      <button id="split-button" class="primary" type="button">CSVを分割</button>
+      <p id="split-notice" class="notice" aria-live="polite"></p>
+      <section id="split-summary" class="csv-summary" hidden aria-label="分割結果">
+        <dl>
+          <dt>ファイル名</dt><dd id="split-file-name"></dd>
+          <dt>ファイルサイズ</dt><dd id="split-file-size"></dd>
+          <dt>列数</dt><dd id="split-column-count"></dd>
+          <dt>元のデータ行数</dt><dd id="split-data-row-count"></dd>
+          <dt>1ファイルあたりのデータ行数</dt><dd id="split-rows-per-file"></dd>
+          <dt>分割後のファイル数</dt><dd id="split-part-count"></dd>
+        </dl>
+      </section>
+      <section id="split-preview-area" class="preview-area" hidden>
+        <div class="section-heading"><h3>分割結果プレビュー</h3><button id="save-split-csv" class="primary" type="button" disabled>分割したCSVをすべて保存</button></div>
+        <p id="split-preview-note" class="hint"></p>
+        <div id="split-preview" class="split-part-list"></div>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>1ファイルあたりに分けたいデータ行数を入力し、「CSVを分割」を押します。</li><li>分割結果のプレビューを確認して、「分割したCSVをすべて保存」を押します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">ID,NAME,DEPARTMENT
+001,田中,営業
+002,鈴木,開発
+003,佐藤,総務
+
+1ファイルあたりのデータ行数を2にすると、次の2ファイルになります。
+customers-part-1.csv: ヘッダー + 001,002
+customers-part-2.csv: ヘッダー + 003</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>UTF-8（BOM付きも可）のカンマ区切りCSVを、指定したデータ行数ごとに分割します。ヘッダー行はすべての出力ファイルに含まれます。データ行の順序と値は変更しません。1ファイルあたりのデータ行数は1以上の整数を指定してください。壊れた引用符や列数が不揃いな行を含むCSVは安全のため処理しません。出力はUTF-8 BOM付き・CRLF改行です。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>元のCSVは変更されますか？</h3><p>いいえ。元ファイルは変更せず、分割した内容を新しいCSVとして保存します。</p><h3>ヘッダー行はどのファイルに入りますか？</h3><p>すべての分割ファイルに同じヘッダー行を含めます。</p><h3>ファイルはアップロードされますか？</h3><p>いいえ。ファイルの読み込み・分割はブラウザ内だけで行います。</p><h3>分割したファイル名はどうなりますか？</h3><p>元のファイル名に「-part-番号」を付けて保存します。たとえば、customers.csvはcustomers-part-1.csvのようになります。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/merge/">CSV結合</a> / <a href="/csv/columns/">CSV列抽出・列削除</a> / <a href="/csv/remove-empty-rows/">CSV空欄行削除</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>
