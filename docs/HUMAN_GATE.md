@@ -81,3 +81,13 @@ CSV構文、行数指定の検証、ヘッダーの各ファイルへの付与�
 
 | 日付 | 確認項目 | 発見事項 | 自動化候補 | 判断 |
 | --- | --- | --- | --- | --- |
+
+## Phase A: Tool Factory v2
+
+- [ ] Scaffold CLIの入力項目が理解しやすい
+- [ ] 生成されたCSV Tool draftのファイル構成が既存Toolと自然に揃う
+- [ ] 生成されたText Tool draftのファイル構成が既存Toolと自然に揃う
+- [ ] draft Toolがローカルbuildのdistに出ない
+- [ ] 既存6 Toolが従来どおり表示・操作できる
+- [ ] README / TOOL_FACTORYの手順だけを読んで次のTool追加を開始できる
+- [ ] 未完成Toolを誤ってpublishedへ変更した場合に自動検査が停止する

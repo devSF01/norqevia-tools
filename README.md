@@ -19,6 +19,8 @@ Bundled Node.js を利用する環境では、次のように実行します。
 
 `pnpm run test:all` はビルド、単体テスト、通信禁止の静的検査、ブラウザテストをまとめて実行します。`serve` の後は `http://localhost:4173/` を開きます。
 
+`pnpm run test` は `tests/*.test.mjs` のNode test runner用ファイルを自動検出します。Playwright専用の `browser.test.mjs` は `pnpm run test:browser` で実行されるため、Tool追加時にNodeテストの列挙を手作業で更新する必要はありません。
+
 ## Network Isolation Test
 
 `tests/network-isolation.mjs` は `fetch`、XHR、WebSocket、EventSource、Beacon、iframe、外部 script / stylesheet、外部URLを検査します。ブラウザ確認では初回読込後にOfflineへ切り替え、各Toolの主要操作・結果・保存が継続して動作することを確認します。
@@ -36,17 +38,22 @@ Bundled Node.js を利用する環境では、次のように実行します。
     privacy/ , terms/       共通ページ
     tests/                  単体・通信禁止テスト
     docs/HUMAN_GATE.md      人手確認と自動化候補の記録
-    scripts/                静的ビルドとローカル配信
+    scripts/                Scaffold、テスト実行、静的ビルド、ローカル配信
+    templates/tool/         ScaffoldのCSV / Textテンプレート
     tools.json              Tool Registry（公開情報のSource of Truth）
     dist/                   配置用成果物（buildで生成）
 
 ## 新しいToolを追加するには
 
-1. 目的別のURLディレクトリ（例: `text/new-tool/index.html`）を作成し、共通ヘッダー、パンくず、ローカル処理表示、説明、FAQ、関連ツールを配置します。
-2. 変換/比較の純粋ロジックを `shared/` に追加し、DOM処理から分離します。
-3. `tests/` に仕様単位のテストを追加し、`tests/network-isolation.mjs` の対象外となる通信がないことを確認します。
-4. `tools.json` にTool情報を登録します。公開する場合は `status` を `published` にします。
-5. `pnpm run test:all`、Offline操作、Human Gateを実施します。
+1. Toolの目的、入力、出力、処理仕様を決めます。
+2. Scaffoldを実行します。Scaffoldは必ず `draft` として4ファイルとregistry entryを生成します。
+
+       pnpm run create-tool -- --id csv-dedupe --number 7 --name "CSV重複行削除" --category "CSV" --template csv --slug dedupe --description "CSVから重複する行を確認し、新しいCSVとして保存できます。"
+
+3. 生成されたページ、`shared/<id>-core.js`、`shared/<id>-app.js`、`tests/<id>.test.mjs` にTool固有のUI・ロジック・説明・テストを実装します。CSV処理は既存の `shared/csv-columns-core.js` などを優先して再利用します。
+4. `pnpm run test:all` と必要な個別テストを実施します。`tests/*.test.mjs` は自動検出されるため、`package.json` のテスト一覧を更新する必要はありません。
+5. [Human Gate checklist](docs/HUMAN_GATE.md) に従って人間が実機確認します。
+6. 実装・テスト・Human Gateが完了したToolだけ、`tools.json` の `status` を `published` に変更します。Scaffold markerが残るToolはbuildが停止します。
 
 トップページのToolカードと `sitemap.xml` は `tools.json` からbuild時に生成されるため、新Tool追加時に個別更新しません。
 

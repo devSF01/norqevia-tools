@@ -95,6 +95,30 @@ Runtime外部依存は持たせません。
 
 現在のブラウザテストにはPlaywrightを使用しています。
 
+### 2.5 新ToolはScaffoldから開始する
+
+新しいToolは、手作業で既存ページを複製せず、Tool Factory Scaffoldから開始します。
+
+```text
+pnpm run create-tool -- --id <id> --number <number> --name "<表示名>" --category "<カテゴリ>" --template csv|text --slug <slug> --description "<説明>"
+```
+
+Scaffoldが生成するページ、core、app、unit testには `TOOL_SCAFFOLD_TODO` markerが含まれ、registryには必ず `status: "draft"` で登録されます。Scaffold CLIにはpublished指定や既存ファイルを上書きするforce指定はありません。
+
+標準の作業順は次のとおりです。
+
+1. Tool固有仕様を決める
+2. Scaffoldでdraftを生成する
+3. Tool固有のUI・coreロジック・説明を実装する
+4. Tool固有テストと自動テストを完成させる
+5. Human Gateで人間が確認する
+6. markerが残っていないことを確認し、`tools.json` のstatusをpublishedへ変更する
+7. buildで公開成果物を生成する
+
+`status` がpublished以外のToolはトップページ・sitemap・Tool directoryともbuild成果物に含まれません。published Toolのsourceまたは対応するcore / app / testに `TOOL_SCAFFOLD_TODO` が残っている場合、buildはfail-closedで停止します。Human Gateは自動化後も省略しません。
+
+Phase Aで利用できるtemplateは `csv` と `text` だけです。新しいtemplate種別は、Tool Factoryを明示的に拡張するときだけ追加します。
+
 ---
 
 ## 3. 既存共通部品
