@@ -6,13 +6,14 @@ const requiredArguments = ['id', 'number', 'name', 'category', 'template', 'slug
 
 export function parseArguments(argv) {
   const options = {};
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index];
+  const argumentsToParse = argv[0] === '--' ? argv.slice(1) : argv;
+  for (let index = 0; index < argumentsToParse.length; index += 1) {
+    const argument = argumentsToParse[index];
     if (!argument.startsWith('--')) throw new Error(`不明な引数です: ${argument}`);
     const key = argument.slice(2);
     if (!requiredArguments.includes(key)) throw new Error(`不明なオプションです: --${key}`);
     if (Object.hasOwn(options, key)) throw new Error(`オプションを重複指定できません: --${key}`);
-    const value = argv[index + 1];
+    const value = argumentsToParse[index + 1];
     if (value === undefined || value.startsWith('--')) throw new Error(`--${key} の値がありません。`);
     options[key] = value;
     index += 1;

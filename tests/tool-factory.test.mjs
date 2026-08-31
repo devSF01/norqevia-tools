@@ -143,6 +143,12 @@ test('Text scaffoldはtext視覚言語と期待pathを使う', async () => {
 
 test('CLI parserは必須引数を要求し、published指定を受け付けない', () => {
   assert.throws(() => parseArguments(['--id', 'csv-test']), /必須オプション/);
+  const forwardedArguments = parseArguments([
+    '--', '--id', 'csv-test', '--number', '7', '--name', 'Test', '--category', 'CSV',
+    '--template', 'csv', '--slug', 'test', '--description', 'desc'
+  ]);
+  assert.equal(forwardedArguments.id, 'csv-test');
+  assert.equal(forwardedArguments.description, 'desc');
   assert.throws(() => parseArguments([
     '--id', 'csv-test', '--number', '7', '--name', 'Test', '--category', 'CSV',
     '--template', 'csv', '--slug', 'test', '--description', 'desc', '--status', 'published'

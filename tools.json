@@ -52,5 +52,14 @@
     "path": "/csv/split/",
     "description": "CSVを指定したデータ行数ごとに分割し、新しいCSVとして保存できます。",
     "status": "published"
+  },
+  {
+    "id": "csv-remove-duplicates",
+    "number": 7,
+    "name": "CSV重複行削除",
+    "category": "CSV",
+    "path": "/csv/remove-duplicates/",
+    "description": "指定した列をキーにCSVの重複行を削除し、新しいCSVとして保存できます。",
+    "status": "published"
   }
 ]

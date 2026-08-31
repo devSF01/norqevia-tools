@@ -4,20 +4,21 @@ import { createServer } from 'node:http';
 import { extname, isAbsolute, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = resolve(fileURLToPath(new URL('../dist/', import.meta.url)));
+const defaultRoot = resolve(fileURLToPath(new URL('../dist/', import.meta.url)));
 const types = { '.css': 'text/css', '.html': 'text/html', '.js': 'text/javascript', '.xml': 'application/xml', '.txt': 'text/plain' };
-
-function isInsideRoot(file) {
-  const pathFromRoot = relative(root, file);
-  return pathFromRoot === '' || (!pathFromRoot.startsWith(`..${sep}`) && pathFromRoot !== '..' && !isAbsolute(pathFromRoot));
-}
 
 function send(response, status, body = '') {
   response.writeHead(status, { 'Content-Type': 'text/plain; charset=utf-8' });
   response.end(body);
 }
 
-export function createStaticServer() {
+export function createStaticServer({ rootDir = defaultRoot } = {}) {
+  const root = resolve(rootDir);
+  const isInsideRoot = (file) => {
+    const pathFromRoot = relative(root, file);
+    return pathFromRoot === '' || (!pathFromRoot.startsWith(`..${sep}`) && pathFromRoot !== '..' && !isAbsolute(pathFromRoot));
+  };
+
   return createServer(async (request, response) => {
     if (!['GET', 'HEAD'].includes(request.method || '')) return send(response, 405, 'Method Not Allowed');
 

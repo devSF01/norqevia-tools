@@ -58,5 +58,10 @@ for (const [path, contentType] of [
 }
 
 test('存在しないパスは 404', async () => assert.equal((await get('/not-found')).status, 404));
+test('公開済みTool #007は公開用dist serverから配信される', async () => {
+  const response = await get('/csv/remove-duplicates/');
+  assert.equal(response.status, 200);
+  assert.match(response.body, /CSV重複行削除/);
+});
 test('エンコードされた dist 外へのパストラバーサルを 403 で拒否する', async () => assert.equal((await get('/%2e%2e%2fpackage.json')).status, 403));
 test('Windows 区切り文字を使うパストラバーサルを 403 で拒否する', async () => assert.equal((await get('/%5c..%5cpackage.json')).status, 403));

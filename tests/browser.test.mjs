@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
 async function collectDownloads(page, count, trigger) {
   const downloads = [];
@@ -125,6 +126,68 @@ test('CSV重複チェックは複数キー、Download、Offline、外部通信�
 test('CSV重複チェックはスマートフォン幅でも横にはみ出さない', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/csv/duplicate-check/');
+  await expect(page.getByLabel('CSVファイル')).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('CSV重複行削除は最初の行を残し、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+  await page.goto('/csv/remove-duplicates/');
+  await page.setInputFiles('#dedupe-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('\uFEFFID,NAME,NOTE\r\n001,田中,"東京,営業"\r\n001,田中,"東京,営業"\r\n001,田中,異動\r\n002,鈴木,開発', 'utf8')
+  });
+  await expect(page.locator('input[name="dedupe-key"]')).toHaveCount(3);
+  await page.locator('input[name="dedupe-key"]').nth(0).check();
+  await page.getByRole('button', { name: '重複行を削除' }).click();
+  await expect(page.locator('#dedupe-source-row-count')).toHaveText('4');
+  await expect(page.locator('#dedupe-group-count')).toHaveText('1');
+  await expect(page.locator('#dedupe-removed-row-count')).toHaveText('2');
+  await expect(page.locator('#dedupe-output-row-count')).toHaveText('2');
+  await expect(page.locator('#dedupe-preview')).toContainText('東京,営業');
+  await expect(page.locator('#dedupe-preview')).toContainText('鈴木');
+  await expect(page.locator('#dedupe-preview')).not.toContainText('異動');
+
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: '重複削除後のCSVを保存' }).click();
+  const downloaded = await download;
+  expect(downloaded.suggestedFilename()).toBe('customers-duplicates-removed.csv');
+  const downloadPath = await downloaded.path();
+  expect(downloadPath).not.toBeNull();
+  expect(await readFile(downloadPath ?? '', 'utf8')).toBe('\uFEFFID,NAME,NOTE\r\n001,田中,"東京,営業"\r\n002,鈴木,開発');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#dedupe-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\nA,オフライン\nA,重複\nB,残す', 'utf8')
+  });
+  await page.locator('input[name="dedupe-key"]').first().check();
+  await page.getByRole('button', { name: '重複行を削除' }).click();
+  await expect(page.locator('#dedupe-removed-row-count')).toHaveText('1');
+  await expect(page.locator('#dedupe-preview')).toContainText('オフライン');
+  await expect(page.locator('#dedupe-preview')).toContainText('残す');
+
+  await page.setInputFiles('#dedupe-file', {
+    name: 'unique.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\nA,一\nB,二', 'utf8')
+  });
+  await page.locator('input[name="dedupe-key"]').first().check();
+  await page.getByRole('button', { name: '重複行を削除' }).click();
+  await expect(page.locator('#dedupe-notice')).toHaveText('重複行は見つかりませんでした。元の内容のまま保存できます。');
+  await expect(page.locator('#dedupe-removed-row-count')).toHaveText('0');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV重複行削除はスマートフォン幅でも横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/remove-duplicates/');
   await expect(page.getByLabel('CSVファイル')).toBeVisible();
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });

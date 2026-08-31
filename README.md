@@ -1,6 +1,6 @@
 # 仕事データツール
 
-CSVやテキストの確認・変換・比較を、入力データを外部へ送らずブラウザ内だけで行う静的ツール集です。「2つのリスト突合」「CSV列抽出・列削除」「CSV重複チェック」「CSV空欄行削除」「CSV結合」「CSV分割」を提供します。
+CSVやテキストの確認・変換・比較を、入力データを外部へ送らずブラウザ内だけで行う静的ツール集です。「2つのリスト突合」「CSV列抽出・列削除」「CSV重複チェック」「CSV空欄行削除」「CSV結合」「CSV分割」「CSV重複行削除」を提供します。
 
 ## 技術構成
 
@@ -35,6 +35,7 @@ Bundled Node.js を利用する環境では、次のように実行します。
     csv/remove-empty-rows/  Tool #004 の静的ページ
     csv/merge/              Tool #005 の静的ページ
     csv/split/              Tool #006 の静的ページ
+    csv/remove-duplicates/  Tool #007 の静的ページ
     privacy/ , terms/       共通ページ
     tests/                  単体・通信禁止テスト
     docs/HUMAN_GATE.md      人手確認と自動化候補の記録
@@ -48,7 +49,7 @@ Bundled Node.js を利用する環境では、次のように実行します。
 1. Toolの目的、入力、出力、処理仕様を決めます。
 2. Scaffoldを実行します。Scaffoldは必ず `draft` として4ファイルとregistry entryを生成します。
 
-       pnpm run create-tool -- --id csv-dedupe --number 7 --name "CSV重複行削除" --category "CSV" --template csv --slug dedupe --description "CSVから重複する行を確認し、新しいCSVとして保存できます。"
+       pnpm run create-tool -- --id csv-remove-duplicates --number 7 --name "CSV重複行削除" --category "CSV" --template csv --slug remove-duplicates --description "指定した列をキーにCSVの重複行を削除し、新しいCSVとして保存できます。"
 
 3. 生成されたページ、`shared/<id>-core.js`、`shared/<id>-app.js`、`tests/<id>.test.mjs` にTool固有のUI・ロジック・説明・テストを実装します。CSV処理は既存の `shared/csv-columns-core.js` などを優先して再利用します。
 4. `pnpm run test:all` と必要な個別テストを実施します。`tests/*.test.mjs` は自動検出されるため、`package.json` のテスト一覧を更新する必要はありません。
@@ -68,6 +69,8 @@ Tool #004では、共通CSV parser / serializer / UTF-8検証を再利用し、�
 Tool #005では、共通CSV parser / serializer / UTF-8検証を再利用し、複数のCSVをファイル順に結合して新しいCSVを保存します。ヘッダーの扱い、列構成の検証、Download、Offline動作を確認します。
 
 Tool #006では、共通CSV parser / serializer / UTF-8検証を再利用し、データ行を指定件数ごとに分割して新しいCSVを保存します。各ファイルへのヘッダー付与、行順・値の保持、Download、Offline動作を確認します。
+
+Tool #007では、Tool #003の重複判定ロジックと共通CSV parser / serializer / UTF-8検証を再利用し、指定列をキーに最初の出現だけを残して重複行を削除し、新しいCSVを保存します。行順・値の保持、Download、Offline動作を確認します。
 
 ## Human Gate
 
