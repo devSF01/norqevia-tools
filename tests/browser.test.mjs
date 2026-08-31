@@ -398,3 +398,92 @@ test('CSVヘッダー比較は390x844でも入力と比較ボタンを操作で�
   await expect(page.getByRole('button', { name: 'ヘッダーを比較' })).toBeEnabled();
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('CSV並べ替えは昇順・降順、Preview、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('pageerror', (error) => { consoleErrors.push(error.message); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+
+  await page.goto('/csv/sort/');
+  await page.setInputFiles('#sort-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('\uFEFFID,NAME,NOTE\r\n003,鈴木,"東京,営業"\r\n001,佐藤,"引用符 ""付き"""\r\n002,田中,"複数\n行"\r\n001,加藤,同じキー', 'utf8')
+  });
+  await expect(page.locator('#sort-summary')).toBeVisible();
+  await expect(page.locator('#sort-file-name')).toHaveText('customers.csv');
+  await expect(page.locator('#sort-column-count')).toHaveText('3');
+  await expect(page.locator('#sort-data-row-count')).toHaveText('4');
+
+  await page.locator('#sort-column').selectOption('0');
+  await page.getByRole('radio', { name: '昇順' }).check();
+  await page.getByRole('button', { name: '並べ替える' }).click();
+  await expect(page.locator('#sort-result')).toBeVisible();
+  await expect(page.locator('#sort-result-column')).toHaveText('ID');
+  await expect(page.locator('#sort-result-direction')).toHaveText('昇順');
+  await expect(page.locator('#sort-result-row-count')).toHaveText('4行');
+  const rows = page.locator('#sort-preview tbody tr');
+  await expect(rows).toHaveCount(4);
+  expect(await rows.evaluateAll((items) => items.map((item) => [item.cells[0].textContent, item.cells[1].textContent]))).toEqual([
+    ['001', '佐藤'],
+    ['001', '加藤'],
+    ['002', '田中'],
+    ['003', '鈴木']
+  ]);
+  await expect(page.locator('#sort-preview')).toContainText('東京,営業');
+  await expect(page.locator('#sort-preview')).toContainText('引用符 "付き"');
+  await expect(page.locator('#sort-preview')).toContainText('複数\n行');
+
+  const ascDownload = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'CSVを保存' }).click();
+  await expect((await ascDownload).suggestedFilename()).toBe('customers-sorted.csv');
+
+  await page.getByRole('radio', { name: '降順' }).check();
+  await page.getByRole('button', { name: '並べ替える' }).click();
+  await expect(page.locator('#sort-result-direction')).toHaveText('降順');
+  await expect(rows).toHaveCount(4);
+  expect(await rows.evaluateAll((items) => items.map((item) => [item.cells[0].textContent, item.cells[1].textContent]))).toEqual([
+    ['003', '鈴木'],
+    ['002', '田中'],
+    ['001', '佐藤'],
+    ['001', '加藤']
+  ]);
+
+  await context.setOffline(true);
+  await page.setInputFiles('#sort-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('NAME,ID\nオフライン2,2\nオフライン1,1', 'utf8')
+  });
+  await expect(page.locator('#sort-file-name')).toHaveText('offline.csv');
+  await page.locator('#sort-column').selectOption('1');
+  await page.getByRole('radio', { name: '昇順' }).check();
+  await page.getByRole('button', { name: '並べ替える' }).click();
+  await expect(page.locator('#sort-preview')).toContainText('オフライン1');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV並べ替えは390x844でも主要操作が可能で横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/sort/');
+  await page.setInputFiles('#sort-file', {
+    name: 'mobile.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n2,田中\n1,佐藤', 'utf8')
+  });
+  await expect(page.locator('#sort-column')).toBeVisible();
+  await expect(page.getByRole('radio', { name: '昇順' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: '降順' })).toBeVisible();
+  await page.locator('#sort-column').selectOption('0');
+  await page.getByRole('radio', { name: '昇順' }).check();
+  await expect(page.getByRole('button', { name: '並べ替える' })).toBeEnabled();
+  await page.getByRole('button', { name: '並べ替える' }).click();
+  await expect(page.getByRole('button', { name: 'CSVを保存' })).toBeVisible();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'CSVを保存' }).click();
+  await expect((await download).suggestedFilename()).toBe('mobile-sorted.csv');
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});

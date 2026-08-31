@@ -70,5 +70,14 @@
     "path": "/csv/header-compare/",
     "description": "2つのCSVの列名と列順を比較し、ヘッダーの違いを確認できます。",
     "status": "published"
+  },
+  {
+    "id": "csv-sort",
+    "number": 9,
+    "name": "CSV並べ替え",
+    "category": "CSV",
+    "path": "/csv/sort/",
+    "description": "指定した列をキーにCSVの行を昇順・降順で並べ替え、新しいCSVとして保存できます。",
+    "status": "draft"
   }
 ]
