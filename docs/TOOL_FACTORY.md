@@ -117,6 +117,8 @@ Scaffoldが生成するページ、core、app、unit testには `TOOL_SCAFFOLD_T
 
 `status` がpublished以外のToolはトップページ・sitemap・Tool directoryともbuild成果物に含まれません。published Toolのsourceまたは対応するcore / app / testに `TOOL_SCAFFOLD_TODO` が残っている場合、buildはfail-closedで停止します。Human Gateは自動化後も省略しません。
 
+Human Gateの承認を受けてからstatus変更、build、commit、pushを行う具体的な手順は `docs/PUBLISH_PROCEDURE.md` に従います。ユーザーの明示的な「公開してください」がない限り、status変更やpushへ進みません。
+
 Phase Aで利用できるtemplateは `csv` と `text` だけです。新しいtemplate種別は、Tool Factoryを明示的に拡張するときだけ追加します。
 
 ---

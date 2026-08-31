@@ -58,6 +58,10 @@ Bundled Node.js を利用する環境では、次のように実行します。
 
 トップページのToolカードと `sitemap.xml` は `tools.json` からbuild時に生成されるため、新Tool追加時に個別更新しません。
 
+## 公開手順
+
+実装結果と自動検証結果を確認したうえで、ユーザーが対象Toolについて「公開してください」と明示した場合に限り、Human Gateの最終承認として公開へ進みます。status変更、公開用build、対象ファイルだけのcommit、通常pushの詳細は [`docs/PUBLISH_PROCEDURE.md`](docs/PUBLISH_PROCEDURE.md) を参照してください。
+
 Tool #002では、新ページ、純粋ロジック、画面制御、CSV専用スタイル、単体テスト、ブラウザテストの追加と、トップ・sitemap・build・Network Isolation・Human Gate・READMEの更新を行いました。
 
 Tool #003では、Tool #002のCSV parser / serializer / UTF-8検証をそのまま再利用しました。ページ、重複判定ロジック、重複一覧UI、固有テストだけを新規に追加しています。
