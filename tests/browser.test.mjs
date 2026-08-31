@@ -322,3 +322,79 @@ test('CSV分割はスマートフォン幅でも横にはみ出さない', async
   await expect(page.getByLabel('CSVファイル')).toBeVisible();
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('CSVヘッダー比較はAのみ・共通・Bのみ・列順差異を表示し、Offlineで再比較できる', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('pageerror', (error) => { consoleErrors.push(error.message); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+
+  await page.goto('/csv/header-compare/');
+  await page.setInputFiles('#header-a-file', {
+    name: 'sales-a.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('\uFEFFID,NAME,A_ONLY\r\n001,田中,A側のデータ', 'utf8')
+  });
+  await page.setInputFiles('#header-b-file', {
+    name: 'sales-b.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('NAME,ID,B_ONLY\r\n鈴木,B側のデータ,B', 'utf8')
+  });
+  await expect(page.locator('#header-a-summary')).toBeVisible();
+  await expect(page.locator('#header-b-summary')).toBeVisible();
+  await expect(page.locator('#header-a-file-name')).toHaveText('sales-a.csv');
+  await expect(page.locator('#header-a-column-count')).toHaveText('3');
+  await expect(page.locator('#header-a-data-row-count')).toHaveText('1');
+  await expect(page.locator('#header-b-file-size')).toContainText('bytes');
+
+  await page.getByRole('button', { name: 'ヘッダーを比較' }).click();
+  await expect(page.locator('#header-result')).toBeVisible();
+  await expect(page.locator('#result-exact-match')).toHaveText('いいえ');
+  await expect(page.locator('#result-column-count-a')).toHaveText('3');
+  await expect(page.locator('#result-column-count-b')).toHaveText('3');
+  await expect(page.locator('#result-only-a-count')).toHaveText('1');
+  await expect(page.locator('#result-only-b-count')).toHaveText('1');
+  await expect(page.locator('#result-common-count')).toHaveText('2');
+  await expect(page.locator('#result-order')).toHaveText('異なる');
+  await expect(page.locator('#only-a-columns')).toContainText('A_ONLY');
+  await expect(page.locator('#common-columns')).toContainText('ID');
+  await expect(page.locator('#common-columns')).toContainText('NAME');
+  await expect(page.locator('#only-b-columns')).toContainText('B_ONLY');
+  await expect(page.locator('#header-order-differences')).toContainText('1列目');
+  await expect(page.locator('#header-result')).not.toContainText('A側のデータ');
+  await expect(page.locator('#header-result')).not.toContainText('B側のデータ');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#header-a-file', {
+    name: 'offline-a.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('OFFLINE,共通\n再比較,A', 'utf8')
+  });
+  await page.setInputFiles('#header-b-file', {
+    name: 'offline-b.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('OFFLINE,共通\n再比較,B', 'utf8')
+  });
+  await page.getByRole('button', { name: 'ヘッダーを比較' }).click();
+  await expect(page.locator('#result-exact-match')).toHaveText('はい');
+  await expect(page.locator('#result-only-a-count')).toHaveText('0');
+  await expect(page.locator('#result-only-b-count')).toHaveText('0');
+  await expect(page.locator('#result-common-count')).toHaveText('2');
+  await expect(page.locator('#result-order')).toHaveText('同じ');
+  await expect(page.locator('#only-a-columns')).toHaveText('なし');
+  await expect(page.locator('#only-b-columns')).toHaveText('なし');
+  await expect(page.locator('#header-order-differences')).toHaveText('なし');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSVヘッダー比較は390x844でも入力と比較ボタンを操作でき、横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/header-compare/');
+  await expect(page.locator('#header-a-file')).toBeVisible();
+  await expect(page.locator('#header-b-file')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ヘッダーを比較' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'ヘッダーを比較' })).toBeEnabled();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});

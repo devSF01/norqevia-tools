@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSVヘッダー比較 | 仕事データツール</title>
+  <meta name="description" content="2つのCSVのヘッダーをブラウザ内で比較し、列名と列順の違いを確認できます。入力ファイルは外部へ送信しません。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/header-compare/">
+  <meta property="og:title" content="CSVヘッダー比較 | 仕事データツール">
+  <meta property="og:description" content="2つのCSVの列名と列順をブラウザ内で比較できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/header-compare/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <style>
+    .column-list, .order-list { margin: .65rem 0 0; padding-left: 1.4rem; }
+    .column-list li, .order-list li { overflow-wrap: anywhere; white-space: pre-wrap; }
+  </style>
+  <script type="module" src="/shared/csv-header-compare-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSVヘッダー比較</span></nav>
+    <p class="eyebrow">CSV / Tool #8</p>
+    <h1>CSVヘッダー比較</h1>
+    <p class="lead">2つのCSVの列名と列順を比較して、列構成の違いを確認できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSVヘッダー比較ツール">
+      <h2>2つのCSVを比較する</h2>
+      <div class="input-grid">
+        <section class="input-card" aria-labelledby="header-a-title">
+          <h3 id="header-a-title">CSVファイルA</h3>
+          <div class="file-input">
+            <label for="header-a-file">CSVファイルA</label>
+            <input id="header-a-file" type="file" accept=".csv,text/csv">
+            <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+          </div>
+          <section id="header-a-summary" class="csv-summary" hidden aria-label="CSVファイルAの概要">
+            <h4>ファイル概要</h4>
+            <dl><dt>ファイル名</dt><dd id="header-a-file-name"></dd><dt>ファイルサイズ</dt><dd id="header-a-file-size"></dd><dt>列数</dt><dd id="header-a-column-count"></dd><dt>データ行数</dt><dd id="header-a-data-row-count"></dd></dl>
+          </section>
+        </section>
+        <section class="input-card" aria-labelledby="header-b-title">
+          <h3 id="header-b-title">CSVファイルB</h3>
+          <div class="file-input">
+            <label for="header-b-file">CSVファイルB</label>
+            <input id="header-b-file" type="file" accept=".csv,text/csv">
+            <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+          </div>
+          <section id="header-b-summary" class="csv-summary" hidden aria-label="CSVファイルBの概要">
+            <h4>ファイル概要</h4>
+            <dl><dt>ファイル名</dt><dd id="header-b-file-name"></dd><dt>ファイルサイズ</dt><dd id="header-b-file-size"></dd><dt>列数</dt><dd id="header-b-column-count"></dd><dt>データ行数</dt><dd id="header-b-data-row-count"></dd></dl>
+          </section>
+        </section>
+      </div>
+      <p id="header-compare-notice" class="notice" aria-live="polite"></p>
+      <button id="header-compare-button" class="primary" type="button">ヘッダーを比較</button>
+      <section id="header-result" class="preview-area" hidden aria-label="ヘッダー比較結果">
+        <h3>比較結果</h3>
+        <dl class="stats">
+          <dt>完全一致</dt><dd id="result-exact-match"></dd>
+          <dt>A列数</dt><dd id="result-column-count-a"></dd>
+          <dt>B列数</dt><dd id="result-column-count-b"></dd>
+          <dt>Aのみの列数</dt><dd id="result-only-a-count"></dd>
+          <dt>Bのみの列数</dt><dd id="result-only-b-count"></dd>
+          <dt>共通列数</dt><dd id="result-common-count"></dd>
+          <dt>列順</dt><dd id="result-order"></dd>
+        </dl>
+        <div class="result-grid">
+          <section class="result-card"><h3>Aにだけある列</h3><div id="only-a-columns"></div></section>
+          <section class="result-card"><h3>共通する列</h3><div id="common-columns"></div></section>
+          <section class="result-card"><h3>Bにだけある列</h3><div id="only-b-columns"></div></section>
+        </div>
+        <section class="result-card"><h3>列順の差異</h3><div id="header-order-differences"></div></section>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルAとCSVファイルBを選択します。</li><li>各ファイルの概要で、ファイル名・サイズ・列数・データ行数を確認します。</li><li>「ヘッダーを比較」を押します。</li><li>Aのみ・共通・Bのみの列と、列順の差異を確認します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">A: ID,NAME,DEPARTMENT
+B: NAME,ID,DEPARTMENT
+
+Aのみ: なし
+共通: ID / NAME / DEPARTMENT
+Bのみ: なし
+列順: 異なる（1列目と2列目が入れ替わっています）</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>UTF-8（BOM付きも可）のカンマ区切りCSVに対応しています。quoted comma、escaped quote、改行を含むフィールドを読み込めます。Shift_JIS / CP932、TSV、セミコロン区切りには対応していません。ヘッダー行が必要で、CSVの構文と各行の列数も検証します。列名は完全一致で比較し、trim、大文字小文字の変換、Unicode normalization、類似名の推測は行いません。空ヘッダーや重複ヘッダーは元の文字列と出現個数を保ちます。比較するのはヘッダーだけで、データ行の内容は比較しません。元CSVは変更せず、比較結果のDownload機能もありません。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>データ行の内容も比較しますか？</h3><p>いいえ。比較対象はヘッダーの列名と列順だけです。CSVとして読み込めるか確認するため、構文と各行の列数は検証します。</p><h3>大文字小文字は区別しますか？</h3><p>はい。「ID」と「id」は異なる列名として扱います。</p><h3>列順が違うだけでも差異になりますか？</h3><p>はい。列名の集合が同じでも、列順が違えば完全一致ではありません。差異の位置は1始まりで表示します。</p><h3>同じ列名が複数あるCSVはどう扱いますか？</h3><p>重複を削除せず、出現個数を含めて比較します。たとえばAに「ID」が2列、Bに1列ある場合、A側にIDが1列多い差異として表示します。</p><h3>ファイルはアップロードされますか？</h3><p>いいえ。ファイルの読み込み・検証・比較はブラウザ内だけで行い、外部へ送信しません。</p><h3>元CSVは変更されますか？</h3><p>いいえ。元CSVは読み取り専用で扱い、ファイルの内容を書き換えたり保存したりしません。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/merge/">CSV結合</a> / <a href="/csv/columns/">CSV列抽出・列削除</a> / <a href="/csv/duplicate-check/">CSV重複チェック</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>
