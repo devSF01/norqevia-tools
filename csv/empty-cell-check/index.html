@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV空欄セルチェック | 仕事データツール</title>
+  <meta name="description" content="CSVの空欄セルをチェックし、空欄の件数と行・列の位置をブラウザ内で確認できます。入力データは外部へ送信しません。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/empty-cell-check/">
+  <meta property="og:title" content="CSV空欄セルチェック | 仕事データツール">
+  <meta property="og:description" content="CSVの空欄セルをチェックし、空欄の件数と行・列の位置をブラウザ内で確認できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/empty-cell-check/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-empty-cell-check-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV空欄セルチェック</span></nav>
+    <p class="eyebrow">CSV / Tool #10</p>
+    <h1>CSV空欄セルチェック</h1>
+    <p class="lead">CSV内の空欄セルを列ごと・行ごとに確認し、空欄の位置と件数をチェックできます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV空欄セルチェックツール">
+      <h2>CSVの空欄セルを確認する</h2>
+      <div class="file-input">
+        <label for="empty-cell-file">CSVファイル</label>
+        <input id="empty-cell-file" type="file" accept=".csv,text/csv">
+        <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+      </div>
+      <p id="empty-cell-notice" class="notice" aria-live="polite"></p>
+      <section id="empty-cell-summary" class="csv-summary" hidden aria-label="入力CSVの概要">
+        <h3>ファイル概要</h3>
+        <dl>
+          <dt>ファイル名</dt><dd id="empty-cell-file-name"></dd>
+          <dt>ファイルサイズ</dt><dd id="empty-cell-file-size"></dd>
+          <dt>列数</dt><dd id="empty-cell-column-count"></dd>
+          <dt>データ行数</dt><dd id="empty-cell-data-row-count"></dd>
+        </dl>
+      </section>
+      <button id="empty-cell-check-button" class="primary" type="button" disabled>空欄セルをチェック</button>
+      <section id="empty-cell-result" class="preview-area" hidden aria-label="空欄セルチェック結果">
+        <h3>空欄セルチェック結果</h3>
+        <dl class="stats">
+          <dt>空欄セル総数</dt><dd id="empty-cell-result-empty-count"></dd>
+          <dt>空欄を含むデータ行数</dt><dd id="empty-cell-result-row-count"></dd>
+          <dt>データ行数</dt><dd id="empty-cell-result-data-row-count"></dd>
+          <dt>列数</dt><dd id="empty-cell-result-column-count"></dd>
+        </dl>
+        <p id="empty-cell-result-note" class="hint"></p>
+        <section>
+          <h4>列別集計</h4>
+          <p class="hint">空欄件数はヘッダーを除くデータ行だけを集計しています。</p>
+          <div id="empty-cell-column-table" class="csv-preview" tabindex="0" aria-label="列別の空欄件数"></div>
+        </section>
+        <section>
+          <h4>空欄位置一覧</h4>
+          <p id="empty-cell-position-note" class="hint"></p>
+          <div id="empty-cell-position-list" class="csv-preview" tabindex="0" aria-label="空欄セルの位置"></div>
+        </section>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>「空欄セルをチェック」を押します。</li><li>空欄セル総数と列別件数を確認します。</li><li>CSV行番号・列名・列番号から空欄位置を確認します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">ID,NAME,EMAIL
+001,田中,tanaka@example.com
+002,鈴木,
+003,,sato@example.com
+
+空欄セル: 2件
+EMAIL: 1件
+NAME: 1件
+CSV行番号: 3行目 EMAIL / 4行目 NAME</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>ヘッダー行を除くデータ行の全セルを検査します。値が厳密に空文字列（""）のセルだけを空欄として扱い、半角スペース・全角スペース・タブ・0・NULL・N/A・-は空欄扱いしません。trim、型変換、Unicode normalization、全角半角変換などの暗黙変換は行いません。CSVの内容は変更せず、検査結果のDownload機能もありません。UTF-8（BOM付きも可）のカンマ区切りCSVに対応し、Shift_JIS / CP932、複数ファイル一括検査には対応していません。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>スペースだけのセルも空欄になりますか？</h3><p>いいえ。半角スペース、全角スペース、タブなどの文字が入っているセルは空欄になりません。</p><h3><code>NULL</code> や <code>N/A</code> は空欄になりますか？</h3><p>いいえ。文字が入っているため、空欄ではない値として扱います。</p><h3>ヘッダーの空欄もチェックしますか？</h3><p>いいえ。検査対象はヘッダーを除くデータ行のセルだけです。</p><h3>CSVを自動で修正しますか？</h3><p>いいえ。空欄の検出と表示だけを行い、CSVを修正・削除・保存する機能はありません。</p><h3>大量に空欄がある場合は全部表示されますか？</h3><p>空欄セル総数と列別件数は集計し、位置一覧は先頭100件まで表示します。画面への全件描画は行いません。</p><h3>ファイルはアップロードされますか？</h3><p>いいえ。ファイルの読み込みと検査はブラウザ内だけで行い、入力データや検査結果を外部へ送信しません。</p><h3>元CSVは変更されますか？</h3><p>いいえ。元ファイルは変更せず、検査結果を表示するだけです。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/remove-empty-rows/">CSV空欄行削除</a> / <a href="/csv/columns/">CSV列抽出・列削除</a> / <a href="/csv/header-compare/">CSVヘッダー比較</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>

@@ -79,5 +79,14 @@
     "path": "/csv/sort/",
     "description": "指定した列をキーにCSVの行を昇順・降順で並べ替え、新しいCSVとして保存できます。",
     "status": "published"
+  },
+  {
+    "id": "csv-empty-cell-check",
+    "number": 10,
+    "name": "CSV空欄セルチェック",
+    "category": "CSV",
+    "path": "/csv/empty-cell-check/",
+    "description": "CSV内の空欄セルを列ごと・行ごとに確認し、空欄の位置と件数をチェックできます。",
+    "status": "published"
   }
 ]

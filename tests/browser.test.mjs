@@ -487,3 +487,98 @@ test('CSV並べ替えは390x844でも主要操作が可能で横にはみ出さ�
   await expect((await download).suggestedFilename()).toBe('mobile-sorted.csv');
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });
+
+test('CSV空欄セルチェックは集計、位置表示、空欄0件、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const consoleErrors = [];
+  const externalRequests = [];
+  page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+  page.on('pageerror', (error) => { consoleErrors.push(error.message); });
+  page.on('request', (request) => { if (new URL(request.url()).hostname !== '127.0.0.1') externalRequests.push(request.url()); });
+
+  await page.goto('/csv/empty-cell-check/');
+  await page.setInputFiles('#empty-cell-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from([
+      '\uFEFFID,NAME,EMAIL,NOTE',
+      '001,田中,tanaka@example.com,0',
+      '002,鈴木,"",N/A',
+      '003,,sato@example.com,　',
+      '004,,,"東京,営業"',
+      '005,山田,"引用符 ""付き""","複数\n行"'
+    ].join('\r\n'), 'utf8')
+  });
+
+  await expect(page.locator('#empty-cell-summary')).toBeVisible();
+  await expect(page.locator('#empty-cell-file-name')).toHaveText('customers.csv');
+  await expect(page.locator('#empty-cell-column-count')).toHaveText('4');
+  await expect(page.locator('#empty-cell-data-row-count')).toHaveText('5');
+  await expect(page.getByRole('button', { name: '空欄セルをチェック' })).toBeEnabled();
+
+  await page.getByRole('button', { name: '空欄セルをチェック' }).click();
+  await expect(page.locator('#empty-cell-result')).toBeVisible();
+  await expect(page.locator('#empty-cell-result-empty-count')).toHaveText('4');
+  await expect(page.locator('#empty-cell-result-row-count')).toHaveText('3');
+  await expect(page.locator('#empty-cell-result-data-row-count')).toHaveText('5');
+  await expect(page.locator('#empty-cell-result-column-count')).toHaveText('4');
+  await expect(page.locator('#empty-cell-column-table tbody tr')).toHaveCount(4);
+  await expect(page.locator('#empty-cell-column-table')).toContainText('NAME');
+  await expect(page.locator('#empty-cell-column-table')).toContainText('EMAIL');
+  await expect(page.locator('#empty-cell-position-list tbody tr')).toHaveCount(4);
+  await expect(page.locator('#empty-cell-position-list')).toContainText('3行目');
+  await expect(page.locator('#empty-cell-position-list')).toContainText('4行目');
+  await expect(page.locator('#empty-cell-position-list')).toContainText('5行目');
+  await expect(page.locator('#empty-cell-position-list')).toContainText('2列目');
+  await expect(page.locator('#empty-cell-position-list')).toContainText('3列目');
+  await expect(page.locator('#empty-cell-notice')).toHaveText('4件の空欄セルを検出しました。');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#empty-cell-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n001,オフライン\n002,確認', 'utf8')
+  });
+  await expect(page.locator('#empty-cell-file-name')).toHaveText('offline.csv');
+  await page.getByRole('button', { name: '空欄セルをチェック' }).click();
+  await expect(page.locator('#empty-cell-result-empty-count')).toHaveText('0');
+  await expect(page.locator('#empty-cell-result-row-count')).toHaveText('0');
+  await expect(page.locator('#empty-cell-result-note')).toHaveText('空欄セルは見つかりませんでした。');
+  await expect(page.locator('#empty-cell-position-list tbody tr')).toHaveCount(0);
+  await expect(page.locator('#empty-cell-notice')).toHaveText('空欄セルは見つかりませんでした。');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV空欄セルチェックは空欄位置を先頭100件に制限する', async ({ page }) => {
+  await page.goto('/csv/empty-cell-check/');
+  await page.setInputFiles('#empty-cell-file', {
+    name: 'many-empty.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from([
+      'ID,NAME',
+      ...Array.from({ length: 150 }, () => ',')
+    ].join('\r\n'), 'utf8')
+  });
+
+  await expect(page.getByRole('button', { name: '空欄セルをチェック' })).toBeEnabled();
+  await page.getByRole('button', { name: '空欄セルをチェック' }).click();
+  await expect(page.locator('#empty-cell-result-empty-count')).toHaveText('300');
+  await expect(page.locator('#empty-cell-position-list tbody tr')).toHaveCount(100);
+  await expect(page.locator('#empty-cell-result-note')).toHaveText('空欄セルは300件です。先頭100件を表示しています。');
+  await expect(page.locator('#empty-cell-position-note')).toHaveText('空欄位置は先頭100件に制限して表示しています。');
+});
+
+test('CSV空欄セルチェックは390x844でも主要操作が可能で横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/empty-cell-check/');
+  await page.setInputFiles('#empty-cell-file', {
+    name: 'mobile.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n001,\n002,佐藤', 'utf8')
+  });
+  await expect(page.getByRole('button', { name: '空欄セルをチェック' })).toBeVisible();
+  await expect(page.getByRole('button', { name: '空欄セルをチェック' })).toBeEnabled();
+  await page.getByRole('button', { name: '空欄セルをチェック' }).click();
+  await expect(page.locator('#empty-cell-result-empty-count')).toHaveText('1');
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
