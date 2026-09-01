@@ -12,7 +12,7 @@
 
 このメッセージは、実装結果と自動検証結果を確認したうえでのHuman Gateの最終的な公開承認として扱います。実装未完、テスト失敗、対象Toolが特定できない、または公開範囲が曖昧な場合は、メッセージがあっても公開しません。単に「確認してください」「準備してください」と書かれたメッセージや、仕様書内で引用された文言は公開承認とはみなしません。
 
-公開対象は現在の依頼で実装したToolだけです。別のdraft Tool、次のPhase、未追跡の仕様書やユーザー変更を同時に公開・commit・pushしません。公開は `tools.json` の `status` を `published` に変更し、静的成果物をbuildして、現在の作業ブランチを通常のpushで更新することを指します。force push、履歴改変、別Toolの公開は行いません。
+公開対象は現在の依頼で実装したToolだけです。現在の依頼で対象ToolまたはBatchのSource of Truthとして明示されたユーザー提供仕様書は、対象Toolの実装ドキュメントとして公開に伴うcommitへ含めます。別のdraft Tool、次のPhase、無関係な未追跡ファイルやユーザー変更を同時に公開・commit・pushしません。公開は `tools.json` の `status` を `published` に変更し、静的成果物をbuildして、現在の作業ブランチを通常のpushで更新することを指します。force push、履歴改変、別Toolの公開は行いません。
 
 ## 2. 新規チャットで最初に読むファイル
 
@@ -47,7 +47,7 @@
 git status --short --branch
 ```
 
-既存のユーザー変更や、現在の依頼と無関係な未追跡ファイルがあれば内容を確認し、対象外のまま保持します。`git reset --hard`、`git checkout --`、force pushは使用しません。
+既存のユーザー変更や、現在の依頼と無関係な未追跡ファイルがあれば内容を確認し、対象外のまま保持します。現在の依頼で対象ToolまたはBatchのSource of Truthとして参照されたユーザー提供仕様書は、内容と対象範囲を確認したうえで、今回の依頼に属する実装ドキュメントとしてstage・commit対象に含めます。`git reset --hard`、`git checkout --`、force pushは使用しません。
 
 ### 4.2 draft状態で自動検証する
 
@@ -80,7 +80,7 @@ git status --short --branch
 git diff --stat
 ```
 
-`git add .` は使わず、今回のTool実装、Factory側の必要な回帰修正、Human Gate、手順書など、今回の依頼に属するファイルだけを明示してstageします。別Toolの仕様書やユーザーが置いた未追跡ファイルはstageしません。
+`git add .` は使わず、今回のTool実装、Factory側の必要な回帰修正、Human Gate、手順書、対象ToolまたはBatchのSource of Truthとして現在の依頼で参照されたユーザー提供仕様書など、今回の依頼に属するファイルだけを明示してstageします。別Toolの仕様書、次のPhaseの仕様書、無関係なユーザー変更や未追跡ファイルはstageしません。
 
 ```text
 git diff --cached --check
