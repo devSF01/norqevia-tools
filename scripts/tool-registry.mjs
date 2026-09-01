@@ -92,6 +92,9 @@ export function validateToolsRegistry(tools) {
     assertNonEmptyString(tool.category, `${label}.category`);
     assertNonEmptyString(tool.description, `${label}.description`);
     assertNonEmptyString(tool.status, `${label}.status`);
+    if (tool.csvHubGroup !== undefined) {
+      assertNonEmptyString(tool.csvHubGroup, `${label}.csvHubGroup`);
+    }
 
     if (ids.has(id)) throw new Error(`Tool id が重複しています: ${id}`);
     if (numbers.has(number)) throw new Error(`Tool number が重複しています: ${number}`);

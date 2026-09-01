@@ -146,7 +146,7 @@ Phase Aで利用できるtemplateは `csv` と `text` だけです。新しいte
   - Toolの公開情報に関するSource of Truth
 - `scripts/build.mjs`
   - `dist/`生成
-  - `tools.json` からトップページのToolカードとsitemapを生成
+  - `tools.json` からトップページのToolカード、CSVハブ、sitemapを生成
 - `scripts/serve.mjs`
   - ローカル静的配信
 - `tests/`
@@ -208,6 +208,8 @@ canonicalのProduction origin:
 
 - トップページのTool一覧
 - `sitemap.xml`
+
+`category: "CSV"` のpublished Toolは、`/csv/` の用途別ハブにも自動反映します。既存CSV Toolの用途分類はregistryの任意メタデータ `csvHubGroup` に保持し、新しいCSV Toolが分類を指定しない場合はハブの「その他」へ自動掲載します。Tool名とdescriptionはハブでもregistryから生成し、ページへ手書きで複製しません。
 
 トップページのToolカードやsitemap URLをTool追加のたびに手作業で更新しないでください。
 

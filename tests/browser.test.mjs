@@ -57,6 +57,38 @@ test('空入力の案内と主要な静的ページを表示できる', async ({
   }
 });
 
+test('CSVハブの用途別一覧、トップ導線、breadcrumb導線、Offline時の静的構造が機能する', async ({ page, context }) => {
+  const { consoleErrors, externalRequests } = monitorPage(page);
+  await page.goto('/csv/');
+  await expect(page).toHaveTitle('CSVツール一覧 | 仕事データツール');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CSVツール一覧');
+  for (const heading of ['確認する', '整理する', '修正する', 'まとめる・分ける', '変換する']) {
+    await expect(page.getByRole('heading', { level: 2, name: heading })).toBeVisible();
+  }
+  await expect(page.locator('.csv-hub-groups a.tool-card')).toHaveCount(14);
+  await expect(page.locator('.csv-hub-groups a.tool-card[href="/text/list-compare/"]')).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'プライバシー' }).first()).toHaveAttribute('href', '/privacy/');
+  await expect(page.getByRole('link', { name: '利用規約' }).first()).toHaveAttribute('href', '/terms/');
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+
+  await page.locator('a.tool-card[href="/csv/merge/"]').click();
+  await expect(page).toHaveURL(/\/csv\/merge\/$/);
+  await expect(page.locator('.breadcrumbs a[href="/csv/"]')).toHaveText('CSVツール');
+  await page.locator('.breadcrumbs a[href="/csv/"]').click();
+  await expect(page).toHaveURL(/\/csv\/$/);
+
+  await page.goto('/');
+  await expect(page.locator('a.section-link[href="/csv/"]')).toBeVisible();
+  await page.locator('a.section-link[href="/csv/"]').click();
+  await expect(page).toHaveURL(/\/csv\/$/);
+
+  await context.setOffline(true);
+  await expect(page.locator('header a[href="/csv/"]')).toHaveCount(1);
+  await expect(page.locator('.csv-hub-groups a.tool-card[href="/csv/to-json/"]')).toHaveCount(1);
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
 test('スマートフォン幅でも主要操作部が横にはみ出さない', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/text/list-compare/');

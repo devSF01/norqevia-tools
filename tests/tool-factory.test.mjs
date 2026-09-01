@@ -36,7 +36,8 @@ async function pathExists(path) {
 async function makeBuildWorkspace(tools) {
   const root = await makeWorkspace();
   await Promise.all([
-    writeFile(join(root, 'index.html'), '<section><div class="tool-card-list"></div></section>'),
+    writeFile(join(root, 'index.html'), '<section><div class="tool-index-groups"><!-- TOOL_INDEX_GROUPS --></div></section>'),
+    writeFile(join(root, 'csv', 'index.html'), '<main><nav><a href="/">ホーム</a> / <span aria-current="page">CSVツール</span></nav><h1>CSVツール一覧</h1><div class="csv-hub-groups"><!-- CSV_HUB_TOOL_LINKS --></div></main>'),
     mkdir(join(root, 'assets'), { recursive: true }),
     mkdir(join(root, 'privacy'), { recursive: true }),
     mkdir(join(root, 'terms'), { recursive: true })
@@ -109,6 +110,8 @@ test('CSV scaffoldは4ファイルとdraft registry entryを生成し、値をes
     assert.match(page, /https:\/\/tools\.norqevia\.com\/csv\/dedupe\//);
     assert.match(page, /\/shared\/csv-dedupe-app\.js/);
     assert.match(page, /csv-columns\.css/);
+    assert.match(page, /<a href="\/csv\/">CSVツール<\/a>/);
+    assert.match(page, /<a href="\/">ホーム<\/a> \/ <a href="\/csv\/">CSVツール<\/a> \/ <span/);
   } finally {
     await cleanup(root);
   }
@@ -228,10 +231,15 @@ test('draftはdistへ出ず、publishedだけがdist・top・sitemapへ出る', 
     assert.equal(await pathExists(join(output, 'csv', 'draft-tool')), false);
     assert.equal(await pathExists(join(output, 'csv', 'published-tool', 'index.html')), true);
     const index = await readFile(join(output, 'index.html'), 'utf8');
+    const hub = await readFile(join(output, 'csv', 'index.html'), 'utf8');
     const sitemap = await readFile(join(output, 'sitemap.xml'), 'utf8');
     assert.equal(index.includes('/csv/draft-tool/'), false);
     assert.match(index, /\/csv\/published-tool\//);
+    assert.equal(hub.includes('/csv/draft-tool/'), false);
+    assert.match(hub, /<h2[^>]*>その他<\/h2>/);
+    assert.match(hub, /\/csv\/published-tool\//);
     assert.equal(sitemap.includes('/csv/draft-tool/'), false);
+    assert.equal((sitemap.match(/<loc>https:\/\/tools\.norqevia\.com\/csv\/<\/loc>/g) || []).length, 1);
     assert.match(sitemap, /https:\/\/tools\.norqevia\.com\/csv\/published-tool\//);
   } finally {
     await cleanup(root);
@@ -251,6 +259,21 @@ test('publishedのmarker・source directory欠落・危険pathはdist更新前�
     assert.equal(await readFile(join(markerRoot, 'dist', 'sentinel.txt'), 'utf8'), 'keep');
   } finally {
     await cleanup(markerRoot);
+  }
+
+  const hubMarkerRoot = await makeBuildWorkspace([
+    { id: 'published-tool', number: 2, name: 'Published', category: 'CSV', path: '/csv/published-tool/', description: 'Published', status: 'published' }
+  ]);
+  try {
+    await mkdir(join(hubMarkerRoot, 'csv', 'published-tool'), { recursive: true });
+    await writeFile(join(hubMarkerRoot, 'csv', 'published-tool', 'index.html'), '<h1>Published</h1>');
+    await writeFile(join(hubMarkerRoot, 'csv', 'index.html'), '<main><h1>CSVツール一覧</h1></main>');
+    await mkdir(join(hubMarkerRoot, 'dist'), { recursive: true });
+    await writeFile(join(hubMarkerRoot, 'dist', 'sentinel.txt'), 'keep');
+    await assert.rejects(() => buildSite({ rootDir: hubMarkerRoot, outputDir: join(hubMarkerRoot, 'dist') }), /CSV_HUB_TOOL_LINKS/);
+    assert.equal(await readFile(join(hubMarkerRoot, 'dist', 'sentinel.txt'), 'utf8'), 'keep');
+  } finally {
+    await cleanup(hubMarkerRoot);
   }
 
   const missingRoot = await makeBuildWorkspace([

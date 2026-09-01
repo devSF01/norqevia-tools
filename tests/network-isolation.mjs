@@ -11,5 +11,6 @@ for (const part of ['index.html', 'assets', 'shared', 'text', 'csv', 'privacy', 
 async function walk(dir) { for (const item of await readdir(dir, {withFileTypes:true})) { const path=join(dir,item.name); if (item.isDirectory()) await walk(path); else if (item.isFile() && /\.(?:html|css|js|mjs)$/.test(item.name)) files.push(path); } }
 const forbidden = [/\bfetch\s*\(/, /\bXMLHttpRequest\b/, /\bWebSocket\b/, /\bEventSource\b/, /\bsendBeacon\b/, /<iframe\b/i, /<script[^>]+\bsrc=["']https?:\/\//i, /<link[^>]+rel=["'][^"']*stylesheet[^"']*["'][^>]+\bhref=["']https?:\/\//i];
 const violations=[];
+if (!files.includes(join(root, 'csv', 'index.html'))) violations.push('csv/index.html がNetwork Isolation Testの対象に含まれていません');
 for (const file of files) { const text=await readFile(file,'utf8'); for (const expression of forbidden) if (expression.test(text)) violations.push(`${file}: ${expression}`); for (const url of text.matchAll(/https?:\/\/[^\s"'<>()]+/g)) { try { if (!allowedOrigins.has(new URL(url[0]).origin)) violations.push(`${file}: external URL ${url[0]}`); } catch {} } }
 if (violations.length) { console.error(violations.join('\n')); process.exitCode=1; } else console.log(`Network isolation static check passed (${files.length} files scanned).`);

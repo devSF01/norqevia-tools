@@ -6,7 +6,7 @@ CSVやテキストの確認・変換・比較を、入力データを外部へ�
 
 本番サイトはHTML、CSS、Vanilla JavaScript（ES Modules）のみで、実行時依存を持ちません。開発時だけ、動的通信・Offline・ダウンロードを検証するためのPlaywrightを開発依存として使います。Cloudflare Pagesを含む静的ホスティングへ `dist/` を配置できます。比較ロジックはDOMから分離した `shared/list-compare-core.js` に置き、後続ツールのテストと実装を単純にします。
 
-Toolの公開情報は `tools.json` をSource of Truthとします。`scripts/build.mjs` は `status: "published"` のToolを番号順に読み取り、トップページのToolカードと `sitemap.xml` を自動生成します。
+Toolの公開情報は `tools.json` をSource of Truthとします。`scripts/build.mjs` は `status: "published"` のToolを番号順に読み取り、トップページのToolカード、CSVハブ、`sitemap.xml` を自動生成します。
 
 ## 起動・ビルド・テスト
 
@@ -30,6 +30,7 @@ Bundled Node.js を利用する環境では、次のように実行します。
     assets/                 共通スタイル
     shared/                 DOM非依存の処理ロジックと画面制御
     text/list-compare/      Tool #001 の静的ページ
+    csv/index.html          CSV Toolハブのbuildテンプレート
     csv/columns/            Tool #002 の静的ページ
     csv/duplicate-check/    Tool #003 の静的ページ
     csv/remove-empty-rows/  Tool #004 の静的ページ
@@ -56,7 +57,7 @@ Bundled Node.js を利用する環境では、次のように実行します。
 5. [Human Gate checklist](docs/HUMAN_GATE.md) に従って人間が実機確認します。
 6. 実装・テスト・Human Gateが完了したToolだけ、`tools.json` の `status` を `published` に変更します。Scaffold markerが残るToolはbuildが停止します。
 
-トップページのToolカードと `sitemap.xml` は `tools.json` からbuild時に生成されるため、新Tool追加時に個別更新しません。
+トップページのToolカード、CSVハブ、`sitemap.xml` は `tools.json` からbuild時に生成されるため、新Tool追加時に個別更新しません。CSV Toolの用途分類をregistryの `csvHubGroup` に指定しない場合は、ハブの「その他」へ自動掲載されます。
 
 ## 公開手順
 

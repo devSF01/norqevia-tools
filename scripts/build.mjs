@@ -6,7 +6,11 @@ import { SCAFFOLD_MARKER, validateSitePath, validateToolsRegistry } from './tool
 const productionOrigin = 'https://tools.norqevia.com';
 const defaultRoot = resolve(fileURLToPath(new URL('../', import.meta.url)));
 const defaultOutput = resolve(defaultRoot, 'dist');
-const commonPaths = ['index.html', 'assets', 'shared', 'privacy', 'terms'];
+const commonPaths = ['index.html', 'csv/index.html', 'assets', 'shared', 'privacy', 'terms'];
+const csvHubGroupOrder = ['確認する', '整理する', '修正する', 'まとめる・分ける', '変換する', 'その他'];
+const defaultCsvHubGroup = 'その他';
+const toolIndexMarker = '<!-- TOOL_INDEX_GROUPS -->';
+const csvHubMarker = '<!-- CSV_HUB_TOOL_LINKS -->';
 
 function isInsideRoot(root, path) {
   const pathFromRoot = relative(root, path);
@@ -20,6 +24,49 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function renderToolCard(tool) {
+  return `<a class="tool-card" href="${escapeHtml(tool.path)}"><span class="category">${escapeHtml(tool.category)}</span><h3>${escapeHtml(tool.name)}</h3><p>${escapeHtml(tool.description)}</p><span class="card-link">ツールを開く →</span></a>`;
+}
+
+function renderTopToolGroups(publishedTools) {
+  const groups = new Map();
+  for (const tool of publishedTools) {
+    const label = tool.category === 'CSV' ? 'CSVツール' : tool.category;
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(tool);
+  }
+
+  return [...groups.entries()].map(([label, tools], index) => {
+    const headingId = `tools-category-${index + 1}`;
+    const hubLink = label === 'CSVツール'
+      ? '<a class="section-link" href="/csv/">CSVツールを一覧で見る →</a>'
+      : '';
+    return `<section class="tool-category" aria-labelledby="${headingId}"><div class="section-heading"><h3 id="${headingId}">${escapeHtml(label)}</h3>${hubLink}</div><div class="tool-card-list">${tools.map(renderToolCard).join('')}</div></section>`;
+  }).join('');
+}
+
+function getCsvHubGroup(tool) {
+  if (typeof tool.csvHubGroup === 'string' && tool.csvHubGroup.trim() !== '') return tool.csvHubGroup;
+  return defaultCsvHubGroup;
+}
+
+function renderCsvHubGroups(csvTools) {
+  const groups = new Map(csvHubGroupOrder.map((label) => [label, []]));
+  for (const tool of csvTools) {
+    const label = getCsvHubGroup(tool);
+    if (!groups.has(label)) groups.set(label, []);
+    groups.get(label).push(tool);
+  }
+
+  return [...groups.entries()]
+    .filter(([, tools]) => tools.length > 0)
+    .map(([label, tools], index) => {
+      const headingId = `csv-hub-group-${index + 1}`;
+      return `<section class="content-section csv-hub-group" aria-labelledby="${headingId}"><h2 id="${headingId}">${escapeHtml(label)}</h2><div class="tool-card-list">${tools.map(renderToolCard).join('')}</div></section>`;
+    })
+    .join('');
 }
 
 async function exists(path) {
@@ -87,6 +134,10 @@ async function readRegistry(root) {
 
 async function preflight(root, tools) {
   for (const path of commonPaths) await assertDirectoryOrFile(join(root, path), `共通build対象 ${path}`);
+  const indexTemplate = await readFile(join(root, 'index.html'), 'utf8');
+  if (!indexTemplate.includes(toolIndexMarker)) throw new Error('index.html の TOOL_INDEX_GROUPS marker を検出できません。');
+  const csvHubTemplate = await readFile(join(root, 'csv', 'index.html'), 'utf8');
+  if (!csvHubTemplate.includes(csvHubMarker)) throw new Error('csv/index.html の CSV_HUB_TOOL_LINKS marker を検出できません。');
 
   const publishedTools = tools
     .filter((tool) => tool.status === 'published')
@@ -120,7 +171,9 @@ export async function buildSite({ rootDir = defaultRoot, outputDir = defaultOutp
   await mkdir(output, { recursive: true });
 
   for (const path of commonPaths) {
-    await cp(join(root, path), join(output, path), { recursive: true });
+    const destination = join(output, path);
+    await mkdir(dirname(destination), { recursive: true });
+    await cp(join(root, path), destination, { recursive: true });
   }
   for (const { segments, sourceDirectory } of plans) {
     const destination = join(output, ...segments);
@@ -128,15 +181,18 @@ export async function buildSite({ rootDir = defaultRoot, outputDir = defaultOutp
     await cp(sourceDirectory, destination, { recursive: true });
   }
 
-  const toolCards = publishedTools.map((tool) =>
-    `<a class="tool-card" href="${escapeHtml(tool.path)}"><span class="category">${escapeHtml(tool.category)}</span><h3>${escapeHtml(tool.name)}</h3><p>${escapeHtml(tool.description)}</p><span class="card-link">ツールを開く →</span></a>`
-  ).join('');
+  const csvTools = publishedTools.filter((tool) => tool.category === 'CSV');
+
+  const csvHubPath = join(output, 'csv', 'index.html');
+  let csvHubHtml = await readFile(csvHubPath, 'utf8');
+  if (!csvHubHtml.includes(csvHubMarker)) throw new Error('csv/index.html の CSV_HUB_TOOL_LINKS marker を検出できません。');
+  csvHubHtml = csvHubHtml.replace(csvHubMarker, renderCsvHubGroups(csvTools));
+  await writeFile(csvHubPath, csvHubHtml);
 
   const indexPath = join(output, 'index.html');
   let indexHtml = await readFile(indexPath, 'utf8');
-  const cardListPattern = /(<div class="tool-card-list">)[\s\S]*?(<\/div><\/section>)/;
-  if (!cardListPattern.test(indexHtml)) throw new Error('index.html の tool-card-list を検出できません。');
-  indexHtml = indexHtml.replace(cardListPattern, `$1${toolCards}$2`);
+  if (!indexHtml.includes(toolIndexMarker)) throw new Error('index.html の TOOL_INDEX_GROUPS marker を検出できません。');
+  indexHtml = indexHtml.replace(toolIndexMarker, renderTopToolGroups(publishedTools));
   await writeFile(indexPath, indexHtml);
 
   await writeFile(
@@ -144,7 +200,7 @@ export async function buildSite({ rootDir = defaultRoot, outputDir = defaultOutp
     `User-agent: *\nAllow: /\nSitemap: ${productionOrigin}/sitemap.xml\n`
   );
 
-  const sitemapPaths = ['/', ...publishedTools.map((tool) => tool.path), '/privacy/', '/terms/'];
+  const sitemapPaths = [...new Set(['/', '/csv/', ...publishedTools.map((tool) => tool.path), '/privacy/', '/terms/'])];
   const sitemapUrls = sitemapPaths
     .map((path) => `  <url><loc>${productionOrigin}${path}</loc></url>`)
     .join('\n');

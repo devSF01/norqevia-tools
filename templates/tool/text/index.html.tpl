@@ -15,7 +15,7 @@
 </head>
 <body>
   <!-- {{SCAFFOLD_MARKER}}: Tool固有のページ内容を実装するまでpublishedにしない。 -->
-  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/csv/">CSVツール</a><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
   <main class="page">
     <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">{{NAME_HTML}}</span></nav>
     <p class="eyebrow">{{CATEGORY_HTML}} / Tool #{{NUMBER_TEXT}}</p>

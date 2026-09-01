@@ -199,3 +199,15 @@ CSVヘッダーのkey化、key順・行順、文字列保持、空ヘッダー�
 - [ ] 既存6 Toolが従来どおり表示・操作できる
 - [ ] README / TOOL_FACTORYの手順だけを読んで次のTool追加を開始できる
 - [ ] 未完成Toolを誤ってpublishedへ変更した場合に自動検査が停止する
+
+## Phase C1: CSVハブ・内部リンクSEO構造
+
+- [ ] `/csv/` の用途別分類が直感的で、目的のToolを探しやすい
+- [ ] トップ → CSV一覧 → 個別Toolの導線が自然
+- [ ] CSV ToolのパンくずからCSV一覧へ戻りやすい
+- [ ] PC・スマートフォンでナビゲーションと一覧表示に違和感がない
+- [ ] Toolの処理UIや既存文言に意図しない変化がない
+
+### Phase C1で自動確認済み
+
+published CSV Toolだけのハブ生成、draft isolation、registry由来の名前・説明文、トップからの直接リンク維持、sitemapの重複なし、全14 CSV Toolのbreadcrumb、共通header、canonical・title・H1、静的ナビゲーション、Offline動作、外部通信、Console Error、390x844のhorizontal overflowは自動テストで確認します。
