@@ -123,6 +123,66 @@ UTF-8 CSVの読み込みとファイル概要、1列の昇順・降順、文字�
 - [ ] 空欄多数でも画面が極端に重くならない
 - [ ] 日本語表現・PC/スマートフォン表示に違和感がない
 
+## Tool #011: CSV行数・列数カウント
+
+- [ ] 実CSVの列数・データ行数・record数と表示が一致する
+- [ ] quoted multiline fieldでも利用者の期待するデータ行数になる
+- [ ] ヘッダー一覧が列番号とともに読みやすい
+- [ ] 重複ヘッダーが列番号付きで区別される
+- [ ] 日本語表現・PC/スマートフォン表示に違和感がない
+
+### Tool #011で自動確認済み
+
+CSV構文、quoted multiline / comma / escaped quote、Unicode、重複ヘッダー、record数とデータ行数、外部通信、Console Error、主要URL、Offline、基本レスポンシブoverflowは自動テストで確認します。Download機能はありません。
+
+## Tool #012: CSV行フィルター
+
+- [ ] 「一致する」/「一致しない」が直感的に理解できる
+- [ ] 空文字列を比較値にしたときの意味が誤解されない
+- [ ] 保存したCSVが期待どおりで、元の行順が保たれている
+- [ ] 0件一致時の表示と保存が自然である
+- [ ] 日本語表現・PC/スマートフォン表示に違和感がない
+
+### Tool #012で自動確認済み
+
+完全一致、trimなし、大小文字・空白・先頭ゼロの区別、空文字列、0件・全件、重複ヘッダーの列index、quoted/multiline値、行順、UTF-8 BOM付きCRLF CSV Download、外部通信、Console Error、主要URL、Offline、基本レスポンシブoverflowは自動テストで確認します。
+
+## Tool #013: CSV列名変更
+
+- [ ] 元列名と新列名の対応が列番号で分かりやすい
+- [ ] 重複列名でも編集対象を取り違えにくい
+- [ ] データ内容・列順・行順が変化しない
+- [ ] 空ヘッダーを許す仕様が画面説明と一致している
+- [ ] 日本語表現・PC/スマートフォン表示に違和感がない
+
+### Tool #013で自動確認済み
+
+全列編集、空・重複新ヘッダー、trimなし、データ値・quoted/multiline値・列順・行順の保持、変更なしの出力、UTF-8 BOM付きCRLF CSV Download、外部通信、Console Error、主要URL、Offline、基本レスポンシブoverflowは自動テストで確認します。
+
+## Tool #014: CSV→TSV変換
+
+- [ ] Excel等でTSVとして開き、列が正しく分かれる
+- [ ] 日本語・先頭ゼロ・空値が壊れない
+- [ ] TAB・CR・LF・ダブルクォートを含む値が壊れない
+- [ ] CSVとTSVの区切り文字の違いの説明が分かりやすい
+- [ ] 日本語表現・PC/スマートフォン表示に違和感がない
+
+### Tool #014で自動確認済み
+
+CSV parser再利用、TAB delimiter、quote / escaped quote / multiline、カンマ値、UTF-8 BOM、CRLF、元データ非変更、TSV Download、外部通信、Console Error、主要URL、Offline、基本レスポンシブoverflowは自動テストで確認します。
+
+## Tool #015: CSV→JSON変換
+
+- [ ] JSON previewが読みやすく、先頭数件の範囲が分かる
+- [ ] 先頭ゼロ・true/null風の値・空欄が文字列として残る
+- [ ] 重複ヘッダー時の停止理由が理解しやすい
+- [ ] 保存JSONを一般的なeditorで正常に開ける
+- [ ] 日本語表現・PC/スマートフォン表示に違和感がない
+
+### Tool #015で自動確認済み
+
+CSVヘッダーのkey化、key順・行順、文字列保持、空ヘッダーと重複ヘッダーの検証、quoted/multiline値、整形JSON、BOMなし、末尾改行、JSON Download、外部通信、Console Error、主要URL、Offline、基本レスポンシブoverflowは自動テストで確認します。
+
 ## 気づきの記録
 
 確認中に問題を見つけたら、次の項目を追記してください。自動化できるかを次回の改善判断に使います。

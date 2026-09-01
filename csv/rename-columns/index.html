@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV列名変更 | 仕事データツール</title>
+  <meta name="description" content="CSVの列名だけを変更し、データ内容を変えずに新しいCSVとして保存できます。ブラウザ内だけで処理し、入力データを外部へ送信しません。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/rename-columns/">
+  <meta property="og:title" content="CSV列名変更 | 仕事データツール">
+  <meta property="og:description" content="CSVの列名だけを変更し、データ内容を変えずに新しいCSVとして保存できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/rename-columns/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-rename-columns-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV列名変更</span></nav>
+    <p class="eyebrow">CSV / Tool #13</p>
+    <h1>CSV列名変更</h1>
+    <p class="lead">CSVの列名だけを変更し、データ内容を変えずに新しいCSVとして保存できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV列名変更">
+      <h2>CSVの列名を変更する</h2>
+      <div class="file-input">
+        <label for="rename-file">CSVファイル</label>
+        <input id="rename-file" type="file" accept=".csv,text/csv">
+        <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+      </div>
+      <p id="rename-notice" class="notice" aria-live="polite"></p>
+      <section id="rename-summary" class="csv-summary" hidden aria-label="入力CSVの概要">
+        <h3>ファイル概要</h3>
+        <dl>
+          <dt>ファイル名</dt><dd id="rename-file-name"></dd>
+          <dt>ファイルサイズ</dt><dd id="rename-file-size"></dd>
+          <dt>列数</dt><dd id="rename-column-count"></dd>
+          <dt>データ行数</dt><dd id="rename-data-row-count"></dd>
+        </dl>
+      </section>
+      <section id="rename-editor-area" hidden aria-label="列名編集">
+        <h3>現在の列名と新しい列名</h3>
+        <p class="hint">入力した文字列をそのまま新しいヘッダーに使用します。空文字列や重複も指定できます。</p>
+        <div id="rename-column-editor" class="csv-preview" tabindex="0" aria-label="列名編集一覧"></div>
+        <button id="rename-button" class="primary" type="button" disabled>列名を変更</button>
+      </section>
+      <section id="rename-result" class="preview-area" hidden aria-label="列名変更結果">
+        <div class="section-heading"><h3>列名変更結果プレビュー</h3><button id="save-renamed-csv" class="primary" type="button" disabled>CSVを保存</button></div>
+        <dl class="stats">
+          <dt>列数</dt><dd id="rename-result-column-count"></dd>
+          <dt>データ行数</dt><dd id="rename-result-data-row-count"></dd>
+        </dl>
+        <p id="rename-preview-note" class="hint"></p>
+        <div id="rename-preview" class="csv-preview" tabindex="0"></div>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>各列の「新しい列名」を編集します。</li><li>「列名を変更」を押し、プレビューを確認します。</li><li>「CSVを保存」を押して新しいCSVを保存します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">現在の列名: ID / NAME / 部署&#10;新しい列名: 顧客ID / 氏名 / 担当部署&#10;&#10;データ行はそのまま、ヘッダーだけが置き換わります。</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>すべての列を列番号と現在の列名で一覧表示し、新しいヘッダー名を入力できます。入力文字列はtrimや大小文字変換などをせず、そのまま採用します。空文字列ヘッダーや重複した新ヘッダーも許可します。データ行、値、列順、行順は保持し、変更がない場合も新しいCSVを作成します。出力はUTF-8 BOM付き・CRLF改行です。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>重複した列名を入力できますか？</h3><p>はい。列番号で編集対象を区別できるため、重複した新しい列名もそのまま使用できます。</p><h3>空の列名を入力できますか？</h3><p>はい。空文字列も新しいヘッダーとして許可します。</p><h3>データの値は変わりますか？</h3><p>いいえ。変更するのはヘッダー行だけです。</p><h3>入力した内容は送信されますか？</h3><p>いいえ。読み込み、列名変更、CSV作成はブラウザ内だけで行います。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/columns/">CSV列抽出・列削除</a> / <a href="/csv/header-compare/">CSVヘッダー比較</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>

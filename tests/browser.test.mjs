@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { monitorPage } from './browser-helpers.mjs';
 
 async function collectDownloads(page, count, trigger) {
   const downloads = [];
@@ -580,5 +581,307 @@ test('CSV空欄セルチェックは390x844でも主要操作が可能で横に�
   await expect(page.getByRole('button', { name: '空欄セルをチェック' })).toBeEnabled();
   await page.getByRole('button', { name: '空欄セルをチェック' }).click();
   await expect(page.locator('#empty-cell-result-empty-count')).toHaveText('1');
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('CSV行数・列数カウントはrecord単位の集計、重複ヘッダー、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const { consoleErrors, externalRequests } = monitorPage(page);
+  await page.goto('/csv/row-column-count/');
+  await page.setInputFiles('#count-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from([
+      '\uFEFFID,NAME,NAME,NOTE',
+      '001,田中,鈴木,"東京,営業"',
+      '002,😀,é,"複数',
+      '行"',
+      '003,佐藤,山田,完了'
+    ].join('\r\n'), 'utf8')
+  });
+  await expect(page.locator('#count-summary')).toBeVisible();
+  await expect(page.locator('#count-file-name')).toHaveText('customers.csv');
+  await expect(page.locator('#count-file-size')).toContainText('bytes');
+  await expect(page.locator('#count-column-count')).toHaveText('4');
+  await expect(page.locator('#count-data-row-count')).toHaveText('3');
+  await expect(page.locator('#count-record-count')).toHaveText('4');
+  await expect(page.locator('#count-headers')).toContainText('NAME（2列目）');
+  await expect(page.locator('#count-headers')).toContainText('NAME（3列目）');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#count-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('A,B\n1,オフライン\n2,確認', 'utf8')
+  });
+  await expect(page.locator('#count-data-row-count')).toHaveText('2');
+  await expect(page.locator('#count-record-count')).toHaveText('3');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV行数・列数カウントは390x844でも主要表示が横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/row-column-count/');
+  await page.setInputFiles('#count-file', {
+    name: 'mobile.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n1,佐藤', 'utf8')
+  });
+  await expect(page.locator('#count-summary')).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('CSV行フィルターは完全一致、0件、Preview、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const { consoleErrors, externalRequests } = monitorPage(page);
+  await page.goto('/csv/row-filter/');
+  await page.setInputFiles('#filter-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from([
+      '\uFEFFID,部署,NOTE',
+      '001,営業,"東京,営業"',
+      '002,開発,開発',
+      '003,営業,"引用符 ""付き"""',
+      '004,営業,"複数',
+      '行"'
+    ].join('\r\n'), 'utf8')
+  });
+  await expect(page.locator('#filter-options')).toBeVisible();
+  await page.locator('#filter-column').selectOption('1');
+  await page.locator('#filter-operator').selectOption('equals');
+  await page.getByLabel('比較値').fill('営業');
+  await page.getByRole('button', { name: '行を絞り込む' }).click();
+  await expect(page.locator('#filter-source-row-count')).toHaveText('4');
+  await expect(page.locator('#filter-output-row-count')).toHaveText('3');
+  await expect(page.locator('#filter-preview')).toContainText('東京,営業');
+  await expect(page.locator('#filter-preview')).not.toContainText('開発');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'CSVを保存' }).click();
+  const downloaded = await download;
+  expect(downloaded.suggestedFilename()).toBe('customers-filtered.csv');
+  expect(await readFile(await downloaded.path() ?? '', 'utf8')).toBe('\uFEFFID,部署,NOTE\r\n001,営業,"東京,営業"\r\n003,営業,"引用符 ""付き"""\r\n004,営業,"複数\r\n行"');
+
+  await page.locator('#filter-operator').selectOption('equals');
+  await page.getByLabel('比較値').fill('存在しない');
+  await page.getByRole('button', { name: '行を絞り込む' }).click();
+  await expect(page.locator('#filter-output-row-count')).toHaveText('0');
+  await expect(page.getByRole('button', { name: 'CSVを保存' })).toBeEnabled();
+
+  await expect(page.locator('#filter-notice')).toHaveText('一致するデータ行はありません。ヘッダーだけのCSVを保存できます。');
+
+  await page.locator('#filter-file').setInputFiles({
+    name: 'all-sales.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,部署\n001,営業\n002,営業', 'utf8')
+  });
+  await expect(page.locator('#filter-column option')).toHaveCount(3);
+  await page.locator('#filter-column').selectOption('1');
+  await page.locator('#filter-operator').selectOption('not-equals');
+  await page.getByLabel('比較値').fill('営業');
+  await page.getByRole('button', { name: '行を絞り込む' }).click();
+  await expect(page.locator('#filter-output-row-count')).toHaveText('0');
+  await expect(page.locator('#filter-notice')).toHaveText('条件に該当するデータ行はありません。ヘッダーだけのCSVを保存できます。');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#filter-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n001,オフライン\n002,確認', 'utf8')
+  });
+  await page.locator('#filter-column').selectOption('1');
+  await page.locator('#filter-operator').selectOption('not-equals');
+  await page.getByLabel('比較値').fill('オフライン');
+  await page.getByRole('button', { name: '行を絞り込む' }).click();
+  await expect(page.locator('#filter-output-row-count')).toHaveText('1');
+  await expect(page.locator('#filter-preview')).toContainText('確認');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV行フィルターは390x844でも主要操作が可能で横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/row-filter/');
+  await page.setInputFiles('#filter-file', {
+    name: 'mobile.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n1,佐藤\n2,鈴木', 'utf8')
+  });
+  await page.locator('#filter-column').selectOption('1');
+  await page.getByLabel('比較値').fill('佐藤');
+  await page.getByRole('button', { name: '行を絞り込む' }).click();
+  await expect(page.getByRole('button', { name: 'CSVを保存' })).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('CSV列名変更は列対応、空・重複ヘッダー、Preview、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const { consoleErrors, externalRequests } = monitorPage(page);
+  await page.goto('/csv/rename-columns/');
+  await page.setInputFiles('#rename-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('\uFEFFID,NAME,NAME,NOTE\r\n001,田中,鈴木,"東京,営業"\r\n002,山田,佐藤,開発', 'utf8')
+  });
+  await expect(page.locator('#rename-editor-area')).toBeVisible();
+  const inputs = page.locator('input[name="rename-header"]');
+  await expect(inputs).toHaveCount(4);
+  await expect(page.locator('#rename-column-editor')).toContainText('NAME（2列目）');
+  await expect(page.locator('#rename-column-editor')).toContainText('NAME（3列目）');
+  await inputs.nth(0).fill('顧客ID');
+  await inputs.nth(1).fill('氏名');
+  await inputs.nth(2).fill('氏名');
+  await inputs.nth(3).fill('');
+  await page.getByRole('button', { name: '列名を変更' }).click();
+  await expect(page.locator('#rename-result')).toBeVisible();
+  await expect(page.locator('#rename-result-column-count')).toHaveText('4');
+  await expect(page.locator('#rename-result-data-row-count')).toHaveText('2');
+  await expect(page.locator('#rename-preview')).toContainText('顧客ID');
+  await expect(page.locator('#rename-preview')).toContainText('東京,営業');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'CSVを保存' }).click();
+  const downloaded = await download;
+  expect(downloaded.suggestedFilename()).toBe('customers-renamed-columns.csv');
+  expect(await readFile(await downloaded.path() ?? '', 'utf8')).toBe('\uFEFF顧客ID,氏名,氏名,\r\n001,田中,鈴木,"東京,営業"\r\n002,山田,佐藤,開発');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#rename-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n001,オフライン', 'utf8')
+  });
+  await expect(inputs).toHaveCount(2);
+  await inputs.nth(0).fill('識別子');
+  await page.getByRole('button', { name: '列名を変更' }).click();
+  await expect(page.locator('#rename-preview')).toContainText('識別子');
+  await expect(page.locator('#rename-preview')).toContainText('オフライン');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV列名変更は390x844でも編集・保存が可能で横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/rename-columns/');
+  await page.setInputFiles('#rename-file', {
+    name: 'mobile.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n1,佐藤', 'utf8')
+  });
+  await expect(page.locator('input[name="rename-header"]')).toHaveCount(2);
+  await page.getByRole('button', { name: '列名を変更' }).click();
+  await expect(page.getByRole('button', { name: 'CSVを保存' })).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('CSV→TSV変換はdelimiter、quote、multiline、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const { consoleErrors, externalRequests } = monitorPage(page);
+  await page.goto('/csv/to-tsv/');
+  await page.setInputFiles('#tsv-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from([
+      '\uFEFFID,NOTE',
+      '001,"東京,営業"',
+      '002,"TAB\t付き"',
+      '003,"引用符 ""付き"""',
+      '004,"複数',
+      '行"'
+    ].join('\r\n'), 'utf8')
+  });
+  await expect(page.locator('#tsv-summary')).toBeVisible();
+  await expect(page.locator('#tsv-data-row-count')).toHaveText('4');
+  await page.getByRole('button', { name: 'TSVに変換' }).click();
+  await expect(page.locator('#tsv-result')).toBeVisible();
+  await expect(page.locator('#tsv-result-row-count')).toHaveText('4');
+  await expect(page.locator('#tsv-preview')).toContainText('東京,営業');
+  await expect(page.locator('#tsv-preview')).toContainText('TAB\t付き');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'TSVを保存' }).click();
+  const downloaded = await download;
+  expect(downloaded.suggestedFilename()).toBe('customers.tsv');
+  expect(await readFile(await downloaded.path() ?? '', 'utf8')).toBe('\uFEFFID\tNOTE\r\n001\t東京,営業\r\n002\t"TAB\t付き"\r\n003\t"引用符 ""付き"""\r\n004\t"複数\r\n行"');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#tsv-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n001,オフライン', 'utf8')
+  });
+  await page.getByRole('button', { name: 'TSVに変換' }).click();
+  await expect(page.locator('#tsv-preview')).toContainText('オフライン');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV→TSV変換は390x844でも変換・保存が可能で横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/to-tsv/');
+  await page.setInputFiles('#tsv-file', {
+    name: 'mobile.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n1,佐藤', 'utf8')
+  });
+  await page.getByRole('button', { name: 'TSVに変換' }).click();
+  await expect(page.getByRole('button', { name: 'TSVを保存' })).toBeVisible();
+  expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
+});
+
+test('CSV→JSON変換は文字列保持、Preview、重複ヘッダー停止、Download、Offline、外部通信なしで動作する', async ({ page, context }) => {
+  const { consoleErrors, externalRequests } = monitorPage(page);
+  await page.goto('/csv/to-json/');
+  await page.setInputFiles('#json-file', {
+    name: 'customers.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from([
+      '\uFEFFID,NAME,ACTIVE,NOTE',
+      '001,田中,true,"東京,営業"',
+      '002,鈴木,null,"複数',
+      '行"'
+    ].join('\r\n'), 'utf8')
+  });
+  await expect(page.locator('#json-summary')).toBeVisible();
+  await page.getByRole('button', { name: 'JSONに変換' }).click();
+  await expect(page.locator('#json-result')).toBeVisible();
+  await expect(page.locator('#json-result-row-count')).toHaveText('2');
+  await expect(page.locator('#json-preview')).toContainText('"ID": "001"');
+  await expect(page.locator('#json-preview')).toContainText('"ACTIVE": "true"');
+  await expect(page.locator('#json-preview')).toContainText('東京,営業');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'JSONを保存' }).click();
+  const downloaded = await download;
+  expect(downloaded.suggestedFilename()).toBe('customers.json');
+  const jsonText = await readFile(await downloaded.path() ?? '', 'utf8');
+  expect(jsonText.charCodeAt(0)).not.toBe(0xfeff);
+  expect(jsonText).toBe('[\n  {\n    "ID": "001",\n    "NAME": "田中",\n    "ACTIVE": "true",\n    "NOTE": "東京,営業"\n  },\n  {\n    "ID": "002",\n    "NAME": "鈴木",\n    "ACTIVE": "null",\n    "NOTE": "複数\\r\\n行"\n  }\n]\n');
+
+  await page.setInputFiles('#json-file', {
+    name: 'duplicate.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME,NAME\n1,a,b', 'utf8')
+  });
+  await page.getByRole('button', { name: 'JSONに変換' }).click();
+  await expect(page.locator('#json-result')).toBeHidden();
+  await expect(page.locator('#json-notice')).toContainText('重複したヘッダー');
+
+  await context.setOffline(true);
+  await page.setInputFiles('#json-file', {
+    name: 'offline.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n001,オフライン', 'utf8')
+  });
+  await page.getByRole('button', { name: 'JSONに変換' }).click();
+  await expect(page.locator('#json-preview')).toContainText('オフライン');
+  expect(externalRequests).toEqual([]);
+  expect(consoleErrors).toEqual([]);
+});
+
+test('CSV→JSON変換は390x844でも変換・保存が可能で横にはみ出さない', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/csv/to-json/');
+  await page.setInputFiles('#json-file', {
+    name: 'mobile.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.from('ID,NAME\n1,佐藤', 'utf8')
+  });
+  await page.getByRole('button', { name: 'JSONに変換' }).click();
+  await expect(page.getByRole('button', { name: 'JSONを保存' })).toBeVisible();
   expect(await page.locator('body').evaluate((body) => body.scrollWidth <= window.innerWidth)).toBe(true);
 });

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { CsvError, columnLabel, createUtf8BomCsv, decodeUtf8, extractColumns, outputFilename, parseCsv, serializeCsv, validateCsv } from '../shared/csv-columns-core.js';
+import { CsvError, columnLabel, createUtf8BomCsv, decodeUtf8, extractColumns, outputFilename, outputFilenameWithExtension, parseCsv, serializeCsv, serializeDelimited, validateCsv } from '../shared/csv-columns-core.js';
 
 const parseValid = (text) => { const records = parseCsv(text); validateCsv(records); return records; };
 
@@ -35,14 +35,23 @@ test('構造異常はrecord単位で安全に停止する', () => assert.throws(
 test('serializerはcomma、quote、改行をescapeしCRLFで出力する', () => {
   assert.equal(serializeCsv([['A','B'], ['a,b','a"b'], ['x\ny','']]), 'A,B\r\n"a,b","a""b"\r\n"x\ny",');
 });
+test('delimiter serializerはTSVの区切り文字だけをquoteし既存CSV serializerの挙動を保つ', () => {
+  assert.equal(serializeDelimited([['A', 'B'], ['a,b', 'x\ty'], ['say "hi"', 'line\n2']], '\t'), 'A\tB\r\na,b\t"x\ty"\r\n"say ""hi"""\t"line\n2"');
+});
 test('UTF-8 BOM出力、新しいファイル名、元データ非変更', () => {
   const input = [['ID','NAME'], ['001','田中']];
   const copy = structuredClone(input);
   assert.equal(createUtf8BomCsv(input).charCodeAt(0), 0xfeff);
   assert.equal(outputFilename('customers.csv'), 'customers-columns.csv');
   assert.equal(outputFilename('CUSTOMERS.CSV'), 'CUSTOMERS-columns.csv');
+  assert.equal(outputFilenameWithExtension('customers.csv', 'tsv'), 'customers.tsv');
+  assert.equal(outputFilenameWithExtension('customers.CSV', 'json'), 'customers.json');
   extractColumns(input, [0]);
   assert.deepEqual(input, copy);
+});
+test('拡張子付き出力名は不正な拡張子をrejectする', () => {
+  assert.throws(() => outputFilenameWithExtension('customers.csv', '.tsv'), CsvError);
+  assert.throws(() => outputFilenameWithExtension('customers.csv', 'tsv/evil'), CsvError);
 });
 test('50,000行・20列を実用的な時間で処理する', () => {
   const header = Array.from({ length: 20 }, (_, index) => `C${index}`);

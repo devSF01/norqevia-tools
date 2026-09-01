@@ -88,5 +88,50 @@
     "path": "/csv/empty-cell-check/",
     "description": "CSV内の空欄セルを列ごと・行ごとに確認し、空欄の位置と件数をチェックできます。",
     "status": "published"
+  },
+  {
+    "id": "csv-row-column-count",
+    "number": 11,
+    "name": "CSV行数・列数カウント",
+    "category": "CSV",
+    "path": "/csv/row-column-count/",
+    "description": "CSVのデータ行数と列数をブラウザ上ですぐに確認できます。",
+    "status": "published"
+  },
+  {
+    "id": "csv-row-filter",
+    "number": 12,
+    "name": "CSV行フィルター",
+    "category": "CSV",
+    "path": "/csv/row-filter/",
+    "description": "指定した列の値を条件にCSVの行を絞り込み、新しいCSVとして保存できます。",
+    "status": "published"
+  },
+  {
+    "id": "csv-rename-columns",
+    "number": 13,
+    "name": "CSV列名変更",
+    "category": "CSV",
+    "path": "/csv/rename-columns/",
+    "description": "CSVの列名だけを変更し、データ内容を変えずに新しいCSVとして保存できます。",
+    "status": "published"
+  },
+  {
+    "id": "csv-to-tsv",
+    "number": 14,
+    "name": "CSV→TSV変換",
+    "category": "CSV",
+    "path": "/csv/to-tsv/",
+    "description": "CSVをタブ区切りのTSVへ変換し、新しいファイルとして保存できます。",
+    "status": "published"
+  },
+  {
+    "id": "csv-to-json",
+    "number": 15,
+    "name": "CSV→JSON変換",
+    "category": "CSV",
+    "path": "/csv/to-json/",
+    "description": "CSVの各行をJSONオブジェクトへ変換し、JSONファイルとして保存できます。",
+    "status": "published"
   }
 ]

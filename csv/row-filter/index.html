@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV行フィルター | 仕事データツール</title>
+  <meta name="description" content="指定した列の値を条件にCSVの行を絞り込み、新しいCSVとして保存できます。ブラウザ内だけで処理し、入力データを外部へ送信しません。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/row-filter/">
+  <meta property="og:title" content="CSV行フィルター | 仕事データツール">
+  <meta property="og:description" content="指定した列の値を条件にCSVの行を絞り込み、新しいCSVとして保存できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/row-filter/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-row-filter-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV行フィルター</span></nav>
+    <p class="eyebrow">CSV / Tool #12</p>
+    <h1>CSV行フィルター</h1>
+    <p class="lead">指定した列の値を条件にCSVの行を絞り込み、新しいCSVとして保存できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV行フィルター">
+      <h2>CSVの行を条件で絞り込む</h2>
+      <div class="file-input">
+        <label for="filter-file">CSVファイル</label>
+        <input id="filter-file" type="file" accept=".csv,text/csv">
+        <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+      </div>
+      <p id="filter-notice" class="notice" aria-live="polite"></p>
+      <section id="filter-summary" class="csv-summary" hidden aria-label="入力CSVの概要">
+        <h3>ファイル概要</h3>
+        <dl>
+          <dt>ファイル名</dt><dd id="filter-file-name"></dd>
+          <dt>ファイルサイズ</dt><dd id="filter-file-size"></dd>
+          <dt>列数</dt><dd id="filter-column-count"></dd>
+          <dt>データ行数</dt><dd id="filter-data-row-count"></dd>
+        </dl>
+      </section>
+      <section id="filter-options" hidden aria-label="行フィルター条件">
+        <h3>フィルター条件</h3>
+        <div class="file-input">
+          <label for="filter-column">対象列</label>
+          <select id="filter-column" required><option value="" selected disabled>列を選択してください</option></select>
+          <p class="hint">重複した列名は列番号付きで表示します。</p>
+        </div>
+        <div class="file-input">
+          <label for="filter-operator">条件</label>
+          <select id="filter-operator"><option value="equals">一致する</option><option value="not-equals">一致しない</option></select>
+        </div>
+        <div class="file-input">
+          <label for="filter-value">比較値</label>
+          <input id="filter-value" type="text" autocomplete="off">
+          <p class="hint">完全一致で比較します。空文字列も比較値として指定できます。</p>
+        </div>
+        <button id="filter-button" class="primary" type="button" disabled>行を絞り込む</button>
+      </section>
+      <section id="filter-result" class="preview-area" hidden aria-label="行フィルター結果">
+        <div class="section-heading"><h3>行フィルター結果プレビュー</h3><button id="save-filtered-csv" class="primary" type="button" disabled>CSVを保存</button></div>
+        <dl class="stats">
+          <dt>元のデータ行数</dt><dd id="filter-source-row-count"></dd>
+          <dt>抽出したデータ行数</dt><dd id="filter-output-row-count"></dd>
+        </dl>
+        <p id="filter-preview-note" class="hint"></p>
+        <div id="filter-preview" class="csv-preview" tabindex="0"></div>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>対象列、条件、一致させる比較値を指定します。</li><li>「行を絞り込む」を押し、プレビューを確認します。</li><li>「CSVを保存」を押して新しいCSVを保存します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">ID,部署,氏名&#10;001,営業,田中&#10;002,開発,鈴木&#10;003,営業,佐藤&#10;&#10;部署に「営業」「一致する」を指定すると、001行と003行が抽出されます。</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>指定した1列の値を比較値と完全一致で比較し、条件に合うデータ行だけを元の順序で抽出します。trim、大小文字の変換、数値・日付への変換、Unicode normalization、全角半角変換は行いません。「001」と「1」、空文字列と空白文字は別の値です。ヘッダーは保持し、0件一致でもヘッダーだけの新しいCSVを作成できます。出力はUTF-8 BOM付き・CRLF改行です。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>「一致しない」はどの行を残しますか？</h3><p>指定列の値が比較値と完全一致しない行を残します。</p><h3>空文字列で検索できますか？</h3><p>はい。比較値を空のままにすると、値が厳密に空文字列の行を「一致する」で抽出できます。</p><h3>一致する行が0件でも保存できますか？</h3><p>はい。ヘッダーだけのCSVとして保存できます。</p><h3>入力した内容は送信されますか？</h3><p>いいえ。読み込み、絞り込み、CSV作成はブラウザ内だけで行います。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/empty-cell-check/">CSV空欄セルチェック</a> / <a href="/csv/remove-duplicates/">CSV重複行削除</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>

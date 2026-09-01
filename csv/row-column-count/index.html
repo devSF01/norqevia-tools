@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV行数・列数カウント | 仕事データツール</title>
+  <meta name="description" content="CSVのデータ行数と列数をブラウザ上ですぐに確認できます。ブラウザ内だけで処理し、入力データを外部へ送信しません。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/row-column-count/">
+  <meta property="og:title" content="CSV行数・列数カウント | 仕事データツール">
+  <meta property="og:description" content="CSVのデータ行数と列数をブラウザ上ですぐに確認できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/row-column-count/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-row-column-count-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV行数・列数カウント</span></nav>
+    <p class="eyebrow">CSV / Tool #11</p>
+    <h1>CSV行数・列数カウント</h1>
+    <p class="lead">CSVのデータ行数と列数をブラウザ上ですぐに確認できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV行数・列数カウント">
+      <h2>CSVの行数・列数を確認する</h2>
+      <div class="file-input">
+        <label for="count-file">CSVファイル</label>
+        <input id="count-file" type="file" accept=".csv,text/csv">
+        <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+      </div>
+      <p id="count-notice" class="notice" aria-live="polite"></p>
+      <section id="count-summary" class="csv-summary" hidden aria-label="CSVの集計結果">
+        <h3>CSVの概要</h3>
+        <dl>
+          <dt>ファイル名</dt><dd id="count-file-name"></dd>
+          <dt>ファイルサイズ</dt><dd id="count-file-size"></dd>
+          <dt>列数</dt><dd id="count-column-count"></dd>
+          <dt>データ行数</dt><dd id="count-data-row-count"></dd>
+          <dt>CSV全体のrecord数</dt><dd id="count-record-count"></dd>
+        </dl>
+        <section>
+          <h3>ヘッダー一覧</h3>
+          <p class="hint">ヘッダーはCSVの1行目を表示しています。重複する列名は列番号付きで区別します。</p>
+          <div id="count-headers" class="csv-preview" tabindex="0" aria-label="ヘッダー一覧"></div>
+        </section>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>表示された列数、データ行数、record数を確認します。</li><li>必要に応じてヘッダー一覧で列名と列番号を確認します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">ID,NAME&#10;001,田中&#10;002,鈴木&#10;&#10;列数: 2&#10;データ行数: 2&#10;CSV全体のrecord数: 3</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>CSVの内容は変更せず、既存のCSV parserが認識したrecord単位で数えます。ヘッダーは1行目、データ行数はヘッダーを除いたrecord数です。quoted multiline field内の改行は別のデータ行として数えません。UTF-8（BOM付きも可）のカンマ区切りCSVに対応し、Shift_JIS / CP932には対応していません。結果のDownload機能はありません。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>quoted multiline fieldの改行も行数に含まれますか？</h3><p>いいえ。引用符内の改行は1つのrecordの一部として扱います。</p><h3>重複したヘッダーはどう表示されますか？</h3><p>列名に列番号を付けて表示するため、同じ名前の列も区別できます。</p><h3>入力した内容は送信されますか？</h3><p>いいえ。ファイルの読み込みと集計はブラウザ内だけで行い、入力データや集計結果を外部へ送信しません。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/empty-cell-check/">CSV空欄セルチェック</a> / <a href="/csv/columns/">CSV列抽出・列削除</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>

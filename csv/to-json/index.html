@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV→JSON変換 | 仕事データツール</title>
+  <meta name="description" content="CSVの各行をJSONオブジェクトへ変換し、JSONファイルとして保存できます。ブラウザ内だけで処理し、入力データを外部へ送信しません。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/to-json/">
+  <meta property="og:title" content="CSV→JSON変換 | 仕事データツール">
+  <meta property="og:description" content="CSVの各行をJSONオブジェクトへ変換し、JSONファイルとして保存できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/to-json/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-to-json-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV→JSON変換</span></nav>
+    <p class="eyebrow">CSV / Tool #15</p>
+    <h1>CSV→JSON変換</h1>
+    <p class="lead">CSVの各行をJSONオブジェクトへ変換し、JSONファイルとして保存できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV→JSON変換">
+      <h2>CSVをJSONに変換する</h2>
+      <div class="file-input">
+        <label for="json-file">CSVファイル</label>
+        <input id="json-file" type="file" accept=".csv,text/csv">
+        <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+      </div>
+      <p id="json-notice" class="notice" aria-live="polite"></p>
+      <section id="json-summary" class="csv-summary" hidden aria-label="入力CSVの概要">
+        <h3>ファイル概要</h3>
+        <dl>
+          <dt>ファイル名</dt><dd id="json-file-name"></dd>
+          <dt>ファイルサイズ</dt><dd id="json-file-size"></dd>
+          <dt>列数</dt><dd id="json-column-count"></dd>
+          <dt>データ行数</dt><dd id="json-data-row-count"></dd>
+        </dl>
+      </section>
+      <button id="json-convert-button" class="primary" type="button" disabled>JSONに変換</button>
+      <section id="json-result" class="preview-area" hidden aria-label="JSON変換結果">
+        <div class="section-heading"><h3>JSON変換結果プレビュー</h3><button id="save-json" class="primary" type="button" disabled>JSONを保存</button></div>
+        <dl class="stats"><dt>JSONオブジェクト数</dt><dd id="json-result-row-count"></dd></dl>
+        <p id="json-preview-note" class="hint"></p>
+        <div class="csv-preview"><pre id="json-preview" class="json-preview" tabindex="0"></pre></div>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>「JSONに変換」を押します。</li><li>先頭数件のJSONプレビューを確認します。</li><li>「JSONを保存」を押して新しいファイルを保存します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">ID,NAME,ACTIVE&#10;001,田中,true&#10;002,鈴木,&#10;&#10;[&#10;  {&#10;    "ID": "001",&#10;    "NAME": "田中",&#10;    "ACTIVE": "true"&#10;  }&#10;]</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>CSVのヘッダーをJSON objectのkey、各データ行をvalueとしてJSON配列へ変換します。すべての値は文字列として出力し、「001」は文字列のまま、「true」や「null」に見える値も文字列のまま、空欄は空文字列にします。数値・boolean・nullへの型推測は行いません。key順とデータ行順はCSVの順序を保ちます。重複ヘッダーは安全に変換できないため停止し、勝手なrenameは行いません。空ヘッダーは許可しますが、複数ある場合は重複として停止します。出力はUTF-8、BOMなし、整形済みJSON、末尾改行ありです。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>「001」は数値になりますか？</h3><p>いいえ。「001」はJSON文字列の「001」として保持します。</p><h3>重複したヘッダーはどうなりますか？</h3><p>変換を停止し、重複ヘッダーがあるため変換できないことを表示します。列名を自動変更することはありません。</p><h3>空のヘッダーは使えますか？</h3><p>1つだけなら使えます。複数の空ヘッダーは同じkeyになるため停止します。</p><h3>入力した内容は送信されますか？</h3><p>いいえ。読み込み、変換、JSON作成はブラウザ内だけで行います。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/to-tsv/">CSV→TSV変換</a> / <a href="/csv/rename-columns/">CSV列名変更</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>

@@ -62,12 +62,21 @@ export function extractColumns(records, selectedIndexes) {
   return records.map((row) => selectedIndexes.map((index) => row[index]));
 }
 
-export function serializeCsv(records) {
+export function serializeDelimited(records, delimiter) {
+  if (typeof delimiter !== 'string' || delimiter.length === 0) {
+    throw new CsvError('区切り文字が不正です。');
+  }
   const escape = (value) => {
     const field = String(value);
-    return /[",\r\n]/.test(field) ? `"${field.replaceAll('"', '""')}"` : field;
+    return field.includes(delimiter) || /["\r\n]/.test(field)
+      ? `"${field.replaceAll('"', '""')}"`
+      : field;
   };
-  return records.map((row) => row.map(escape).join(',')).join('\r\n');
+  return records.map((row) => row.map(escape).join(delimiter)).join('\r\n');
+}
+
+export function serializeCsv(records) {
+  return serializeDelimited(records, ',');
 }
 
 export function createUtf8BomCsv(records) { return `\uFEFF${serializeCsv(records)}`; }
@@ -75,6 +84,14 @@ export function createUtf8BomCsv(records) { return `\uFEFF${serializeCsv(records
 export function outputFilename(inputName, suffix = 'columns') {
   const stem = String(inputName || 'columns').replace(/\.csv$/i, '') || 'columns';
   return `${stem}-${suffix}.csv`;
+}
+
+export function outputFilenameWithExtension(inputName, extension) {
+  if (typeof extension !== 'string' || !/^[A-Za-z0-9]+$/.test(extension)) {
+    throw new CsvError('出力拡張子が不正です。');
+  }
+  const stem = String(inputName || 'output').replace(/\.[^.\\/]+$/, '') || 'output';
+  return `${stem}.${extension}`;
 }
 
 export function columnLabel(headers, index) {

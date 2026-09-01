@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV→TSV変換 | 仕事データツール</title>
+  <meta name="description" content="CSVをタブ区切りのTSVへ変換し、新しいファイルとして保存できます。ブラウザ内だけで処理し、入力データを外部へ送信しません。">
+  <link rel="canonical" href="https://tools.norqevia.com/csv/to-tsv/">
+  <meta property="og:title" content="CSV→TSV変換 | 仕事データツール">
+  <meta property="og:description" content="CSVをタブ区切りのTSVへ変換し、新しいファイルとして保存できます。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://tools.norqevia.com/csv/to-tsv/">
+  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/csv-columns.css">
+  <script type="module" src="/shared/csv-to-tsv-app.js"></script>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="/">仕事データツール</a><nav aria-label="主要ナビゲーション"><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></nav></header>
+  <main class="page">
+    <nav class="breadcrumbs" aria-label="パンくず"><a href="/">ホーム</a> / <span aria-current="page">CSV→TSV変換</span></nav>
+    <p class="eyebrow">CSV / Tool #14</p>
+    <h1>CSV→TSV変換</h1>
+    <p class="lead">CSVをタブ区切りのTSVへ変換し、新しいファイルとして保存できます。</p>
+    <aside class="privacy-note" aria-label="ローカル処理について"><span aria-hidden="true">●</span><div><strong>ブラウザ内で処理します</strong>選択したCSVファイルはサーバーへ送信・保存されません。</div></aside>
+    <section class="tool-shell" aria-label="CSV→TSV変換">
+      <h2>CSVをTSVに変換する</h2>
+      <div class="file-input">
+        <label for="tsv-file">CSVファイル</label>
+        <input id="tsv-file" type="file" accept=".csv,text/csv">
+        <p class="hint">UTF-8 / UTF-8 BOM付きCSVに対応しています。Shift_JIS / CP932には対応していません。</p>
+      </div>
+      <p id="tsv-notice" class="notice" aria-live="polite"></p>
+      <section id="tsv-summary" class="csv-summary" hidden aria-label="入力CSVの概要">
+        <h3>ファイル概要</h3>
+        <dl>
+          <dt>ファイル名</dt><dd id="tsv-file-name"></dd>
+          <dt>ファイルサイズ</dt><dd id="tsv-file-size"></dd>
+          <dt>列数</dt><dd id="tsv-column-count"></dd>
+          <dt>データ行数</dt><dd id="tsv-data-row-count"></dd>
+        </dl>
+      </section>
+      <button id="tsv-convert-button" class="primary" type="button" disabled>TSVに変換</button>
+      <section id="tsv-result" class="preview-area" hidden aria-label="TSV変換結果">
+        <div class="section-heading"><h3>TSV変換結果プレビュー</h3><button id="save-tsv" class="primary" type="button" disabled>TSVを保存</button></div>
+        <dl class="stats"><dt>データ行数</dt><dd id="tsv-result-row-count"></dd></dl>
+        <p id="tsv-preview-note" class="hint"></p>
+        <div id="tsv-preview" class="csv-preview" tabindex="0"></div>
+      </section>
+    </section>
+    <section class="content-section"><h2>使い方</h2><ol><li>UTF-8形式のCSVファイルを選択します。</li><li>「TSVに変換」を押します。</li><li>タブ区切りのプレビューを確認します。</li><li>「TSVを保存」を押して新しいファイルを保存します。</li></ol></section>
+    <section class="content-section"><h2>入力例</h2><div class="example">ID,NAME,NOTE&#10;001,田中,"東京,営業"&#10;002,鈴木,開発&#10;&#10;TSVでは、列の間がタブになります。カンマだけを含む値は、TSVでは必ずしも引用符で囲みません。</div></section>
+    <section class="content-section"><h2>仕様・制限</h2><p>既存のCSV parserでrecord化した値を、タブ区切りで新しいTSVへ変換します。値の数値化・日付化・trimなどは行いません。TAB、CR、LF、ダブルクォートを含む値はダブルクォートで囲み、値内のダブルクォートは2つにescapeします。カンマだけを含む値はTSVではquote必須ではありません。出力はUTF-8 BOM付き・CRLF改行です。元CSVは変更しません。</p></section>
+    <section class="content-section"><h2>よくある質問</h2><h3>TSVでもカンマを含む値は壊れませんか？</h3><p>カンマはTSVの区切り文字ではないため、値として保持します。</p><h3>TABや改行を含む値はどうなりますか？</h3><p>値全体をダブルクォートで囲み、改行やTABを値の一部として保持します。</p><h3>Excel等で開けますか？</h3><p>一般的な表計算ソフトでTSVとして読み込めます。必要に応じて文字コードをUTF-8として指定してください。</p><h3>入力した内容は送信されますか？</h3><p>いいえ。読み込み、変換、TSV作成はブラウザ内だけで行います。</p></section>
+    <section class="content-section"><h2>関連ツール</h2><p><a href="/csv/columns/">CSV列抽出・列削除</a> / <a href="/csv/to-json/">CSV→JSON変換</a></p></section>
+  </main>
+  <footer><span>仕事データツール</span><a href="/privacy/">プライバシー</a><a href="/terms/">利用規約</a></footer>
+</body>
+</html>
