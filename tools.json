@@ -78,6 +78,6 @@
     "category": "CSV",
     "path": "/csv/sort/",
     "description": "指定した列をキーにCSVの行を昇順・降順で並べ替え、新しいCSVとして保存できます。",
-    "status": "draft"
+    "status": "published"
   }
 ]
